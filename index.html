@@ -399,10 +399,10 @@
                 </div>
             </div>
 
-            <!-- VIEW: DATA KARYAWAN (LAYOUT DINAMIS MEMANJANG MAKSIMAL KE BAWAH) -->
-            <div id="datamaster-view" class="hidden flex-1 flex flex-col h-full pb-1">
-                <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
-                    <div class="flex flex-col md:flex-row justify-between gap-2.5 mb-2.5 shrink-0">
+            <!-- VIEW: DATA KARYAWAN (MAKSIMAL MEMANJANG KE BAWAH) -->
+            <div id="datamaster-view" class="hidden flex-1 flex flex-col h-full pb-0">
+                <div class="bg-white p-2.5 md:p-3.5 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
+                    <div class="flex flex-col md:flex-row justify-between gap-2 mb-2 shrink-0">
                         <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto flex-1">
                             <div class="relative w-full md:w-96">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
@@ -433,14 +433,14 @@
                             <button onclick="exportToCSV()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md shadow-emerald-500/20 whitespace-nowrap text-sm">
                                 <i class="fa-solid fa-file-excel"></i> Export Rekap
                             </button>
-                            <button onclick="openModal()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md shadow-blue-500/20 whitespace-nowrap text-sm">
+                            <button onclick="openModal()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md shadow-blue-500/30 whitespace-nowrap text-sm">
                                 <i class="fa-solid fa-user-plus"></i> Tambah Karyawan
                             </button>
                         </div>
                     </div>
                     
-                    <!-- TABEL KARYAWAN: TINGGI DILAPANGKAN MENGISI SELURUH SISA RUANG SISA VIEWPORT -->
-                    <div class="overflow-auto flex-1 custom-scrollbar border border-slate-200 rounded-lg relative" style="max-height: calc(100vh - 100px);">
+                    <!-- TABEL KARYAWAN: TINGGI DILAPANGKAN MENGISI SELURUH SISA RUANG BAWAH (CALC VIEWPORT - 65PX) -->
+                    <div class="overflow-auto flex-1 custom-scrollbar border border-slate-200 rounded-lg relative" style="max-height: calc(100vh - 65px);">
                         <table class="w-full text-left text-sm whitespace-nowrap min-w-max relative">
                             <thead class="bg-slate-50 text-slate-500 sticky top-0 z-20 shadow-md">
                                 <tr>
@@ -460,16 +460,16 @@
                             <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
-                    <div class="mt-1.5 text-xs text-slate-500 flex justify-between items-center shrink-0">
+                    <div class="mt-1 text-[11px] text-slate-500 flex justify-between items-center shrink-0">
                         <span>Total Karyawan Ditampilkan: <b id="totalDataCount" class="text-slate-800">0</b></span>
                     </div>
                 </div>
             </div>
 
-            <!-- VIEW: DATA UNIT (LAYOUT DINAMIS MEMANJANG MAKSIMAL KE BAWAH) -->
-            <div id="dataunit-view" class="hidden flex-1 flex flex-col h-full pb-1">
-                <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
-                    <div class="flex flex-col md:flex-row justify-between gap-2.5 mb-2.5 shrink-0">
+            <!-- VIEW: DATA UNIT (MAKSIMAL MEMANJANG KE BAWAH) -->
+            <div id="dataunit-view" class="hidden flex-1 flex flex-col h-full pb-0">
+                <div class="bg-white p-2.5 md:p-3.5 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
+                    <div class="flex flex-col md:flex-row justify-between gap-2 mb-2 shrink-0">
                         <div class="relative w-full md:w-96">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
                             <input type="text" id="searchUnitInput" oninput="filterUnitTable()" placeholder="Cari No Unit, Model..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
@@ -478,14 +478,14 @@
                             <button onclick="exportUnitToCSV()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md shadow-emerald-500/20 whitespace-nowrap text-sm">
                                 <i class="fa-solid fa-file-excel"></i> Export Rekap
                             </button>
-                            <button onclick="openUnitModal()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md shadow-indigo-500/20 whitespace-nowrap text-sm">
+                            <button onclick="openUnitModal()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md shadow-indigo-500/30 whitespace-nowrap text-sm">
                                 <i class="fa-solid fa-truck-medical"></i> Tambah Unit
                             </button>
                         </div>
                     </div>
                     
-                    <!-- TABEL UNIT: TINGGI DILAPANGKAN MENGISI SELURUH SISA RUANG VIEWPORT -->
-                    <div class="overflow-auto flex-1 custom-scrollbar border border-slate-200 rounded-lg relative" style="max-height: calc(100vh - 100px);">
+                    <!-- TABEL UNIT: TINGGI DILAPANGKAN MENGISI SELURUH SISA RUANG BAWAH (CALC VIEWPORT - 65PX) -->
+                    <div class="overflow-auto flex-1 custom-scrollbar border border-slate-200 rounded-lg relative" style="max-height: calc(100vh - 65px);">
                         <table class="w-full text-left text-sm whitespace-nowrap min-w-max relative">
                             <thead class="bg-slate-50 text-slate-500 sticky top-0 z-20 shadow-md">
                                 <tr>
@@ -501,7 +501,7 @@
                             <tbody id="unitTableBody" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
-                    <div class="mt-1.5 text-xs text-slate-500 flex justify-between items-center shrink-0">
+                    <div class="mt-1 text-[11px] text-slate-500 flex justify-between items-center shrink-0">
                         <span>Total Unit Ditampilkan: <b id="totalUnitCount" class="text-slate-800">0</b></span>
                     </div>
                 </div>
@@ -552,12 +552,8 @@
                         <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2"><i class="fa-solid fa-notes-medical text-emerald-500"></i> KESEHATAN (MCU)</h4>
                         <div class="flex flex-col divide-y divide-slate-50">
                             <div class="flex justify-between items-center py-2">
-                                <span class="text-sm text-slate-600 font-medium">Masa Berlaku MCU</span>
+                                <span class="text-sm text-slate-600 font-medium">Exp MCU / Jadwal Kembali</span>
                                 <div id="detail_MCU"></div>
-                            </div>
-                            <div class="flex justify-between items-center py-2">
-                                <span class="text-sm text-slate-600 font-medium">Jadwal MCU Ulang</span>
-                                <div id="detail_MCU_Ulang" class="text-right"></div>
                             </div>
                         </div>
                     </div>
@@ -691,7 +687,7 @@
                                     <input type="date" id="form_TglMCU" name="TglMCU" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="text-xs font-semibold text-slate-600">Masa Berlaku (Expired)</label>
+                                    <label class="text-xs font-semibold text-slate-600">Exp MCU (Jadwal Kembali)</label>
                                     <input type="date" id="form_ExpMCU" name="ExpMCU" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                                 </div>
                             </div>
@@ -843,7 +839,8 @@
                 elTglMCU.addEventListener('change', function() {
                     if (this.value) {
                         const d = new Date(this.value);
-                        d.setFullYear(d.getFullYear() + 1);
+                        // LOGIKA BARU: Exp MCU = 9 bulan setelah tanggal pelaksanaan MCU
+                        d.setMonth(d.getMonth() + 9);
                         document.getElementById('form_ExpMCU').value = d.toISOString().split('T')[0];
                     }
                 });
@@ -1026,27 +1023,9 @@
             setHtmlSafe('detail_SIMPER_BIB', formatField('MP BIB', rowObj.ExpSIMPER_BIB, 60));
             setHtmlSafe('detail_SIMPER_TIA', formatField('MP TIA', rowObj.ExpSIMPER_TIA, 60));
             setHtmlSafe('detail_SIM_B2', formatField('SIM B2', rowObj.ExpSIM_B2, 90));
-            setHtmlSafe('detail_MCU', formatField('MCU', rowObj.ExpMCU, 90));
             
-            const elMcuUlang = document.getElementById('detail_MCU_Ulang');
-            if(elMcuUlang) {
-                if(rowObj.ExpMCU && rowObj.ExpMCU.trim() !== '') {
-                    const parts = rowObj.ExpMCU.split('T')[0].split('-');
-                    if(parts.length === 3) {
-                        const y = parseInt(parts[0], 10);
-                        const m = parseInt(parts[1], 10) - 1; 
-                        const d = parseInt(parts[2], 10);
-                        
-                        const ulangDate = new Date(y, m - 3, d); 
-                        const fmtUlang = ulangDate.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
-                        elMcuUlang.innerHTML = `<div class="font-bold text-slate-800 text-sm">${fmtUlang}</div>`;
-                    } else {
-                        elMcuUlang.innerHTML = '<span class="text-slate-400 text-xs italic font-medium">Format Error</span>';
-                    }
-                } else {
-                    elMcuUlang.innerHTML = '<span class="text-slate-400 text-xs italic font-medium">Belum Ada</span>';
-                }
-            }
+            // Penggabungan MCU & Hapus Jadwal Ulang
+            setHtmlSafe('detail_MCU', formatField('MCU', rowObj.ExpMCU, 90));
 
             setHtmlSafe('detail_DangerTag', formatField('Danger Tag', rowObj.ExpDangerTag, 60));
             setHtmlSafe('detail_Ketinggian', formatField('Ketinggian', rowObj.ExpKetinggian, 30));
@@ -1247,24 +1226,12 @@
                 return `${emoji} ${s.date} (${statusLabel})`;
             };
 
-            let textMcuUlang = '[-] Belum Ada/Tidak Berlaku';
-            if (data.ExpMCU && data.ExpMCU.trim() !== '') {
-                const parts = data.ExpMCU.split('T')[0].split('-');
-                if (parts.length === 3) {
-                    const y = parseInt(parts[0], 10);
-                    const m = parseInt(parts[1], 10) - 1;
-                    const d = parseInt(parts[2], 10);
-                    const ulangDate = new Date(y, m - 3, d);
-                    textMcuUlang = `🗓️ ${ulangDate.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}`;
-                }
-            }
-
             let textToCopy = `*INFORMASI STATUS SERTIFIKASI & LISENSI*\nHalo, berikut adalah status dokumen Anda saat ini:\n\n👤 *Nama:* ${data.Nama}\n🆔 *NRP:* ${data.NRP}\n🏢 *Jabatan:* ${data.Jabatan} (${data.Perusahaan})\n\n*-- MINE PERMIT & LISENSI --*\n• MP BIB : ${getStatusText('MP BIB', data.ExpSIMPER_BIB, 60)}`;
             
             if (isDocRelevant(jbt, 'MP_TIA')) textToCopy += `\n• MP TIA : ${getStatusText('MP TIA', data.ExpSIMPER_TIA, 60)}`;
             if (isDocRelevant(jbt, 'SIM_B2')) textToCopy += `\n• SIM B2 UMUM : ${getStatusText('SIM B2', data.ExpSIM_B2, 90)}`;
             
-            textToCopy += `\n\n*-- KESEHATAN --*\n• MCU : ${getStatusText('MCU', data.ExpMCU, 90)}\n• JADWAL MCU ULANG : ${textMcuUlang}`;
+            textToCopy += `\n\n*-- KESEHATAN --*\n• EXP MCU / KEMBALI : ${getStatusText('MCU', data.ExpMCU, 90)}`;
 
             const showK3 = isDocRelevant(jbt, 'DANGER_TAG') || isDocRelevant(jbt, 'KETINGGIAN') || isDocRelevant(jbt, 'SIO');
             if (showK3) {
@@ -1329,8 +1296,7 @@
         // ==========================================
         async function handleFormSubmit(e) {
             e.preventDefault();
-            const rawData = Object.fromEntries(new FormData(document.getElementById('karyawanForm')).entries());
-            let dataObj = { ...rawData };
+            const dataObj = Object.fromEntries(new FormData(document.getElementById('karyawanForm')).entries());
             
             if (!dataObj.NRP || !dataObj.Nama || !dataObj.Perusahaan || !dataObj.Jabatan) { 
                 Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap!'}); 
@@ -1340,28 +1306,25 @@
 
             let targetList = [...karyawanData];
             let isEdit = false;
-            let existingRecordIndex = -1;
 
-            // Mencegah duplikasi: Cari berdasarkan ID atau NRP (Primary Key)
+            // Pastikan tidak duplikat dengan memeriksa ID atau NRP
             if (dataObj.ID) {
-                existingRecordIndex = targetList.findIndex(k => String(k.ID) === String(dataObj.ID) || String(k.id) === String(dataObj.ID));
-            }
-            if (existingRecordIndex === -1 && dataObj.NRP) {
-                existingRecordIndex = targetList.findIndex(k => String(k.NRP) === String(dataObj.NRP));
-            }
-
-            if (existingRecordIndex > -1) {
-                const existingRecord = targetList[existingRecordIndex];
-                dataObj.ID = existingRecord.ID || existingRecord.id || dataObj.ID;
-                dataObj.id = dataObj.ID; 
-                targetList[existingRecordIndex] = { ...existingRecord, ...dataObj };
-                isEdit = true;
-            } else {
-                if (!dataObj.ID) {
-                    const newId = "temp_" + Date.now();
-                    dataObj.ID = newId;
-                    dataObj.id = newId;
+                const index = targetList.findIndex(k => String(k.ID) === String(dataObj.ID));
+                if (index > -1) {
+                    targetList[index] = { ...targetList[index], ...dataObj };
+                    isEdit = true;
                 }
+            }
+            if (!isEdit && dataObj.NRP) {
+                const indexNrp = targetList.findIndex(k => String(k.NRP) === String(dataObj.NRP));
+                if (indexNrp > -1) {
+                    dataObj.ID = targetList[indexNrp].ID;
+                    targetList[indexNrp] = { ...targetList[indexNrp], ...dataObj };
+                    isEdit = true;
+                }
+            }
+            if (!isEdit) {
+                if (!dataObj.ID) dataObj.ID = "temp_" + Date.now();
                 targetList.unshift(dataObj);
             }
 
@@ -1402,7 +1365,7 @@
                 confirmButtonText: 'Ya, Hapus!'
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    const updatedList = karyawanData.filter(k => String(k.ID) !== String(id) && String(k.id) !== String(id));
+                    const updatedList = karyawanData.filter(k => String(k.ID) !== String(id));
                     updateKaryawanCacheAndRender(updatedList);
 
                     Swal.fire({
@@ -1873,7 +1836,7 @@
 
         function openUnitModal(data = null) {
             document.getElementById('unitFormModal').classList.add('modal-active'); document.getElementById('unitForm').reset();
-            document.getElementById('formUnit_ID').value = ''; document.getElementById('unitModalTitle').innerHTML = '<i class="fa-solid fa-truck text-blue-500 mr-2"></i> Form Data Unit';
+            document.getElementById('formUnit_ID').value = ''; document.getElementById('unitModalTitle').innerHTML = '<i class="fa-solid fa-truck text-blue-500 mr-2"></i> Tambah Data Unit';
             if (data) {
                 document.getElementById('unitModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-blue-500 mr-2"></i> Edit Data Unit';
                 document.getElementById('formUnit_ID').value = data.ID || ''; document.getElementById('formUnit_NoUnit').value = data.NoUnit || ''; document.getElementById('formUnit_Model').value = data.Model || '';
@@ -1897,27 +1860,25 @@
             
             let targetList = [...unitData];
             let isEdit = false;
-            let existingRecordIndex = -1;
 
+            // Pastikan tidak duplikat dengan memeriksa ID atau NoUnit
             if (dataObj.ID) {
-                existingRecordIndex = targetList.findIndex(u => String(u.ID) === String(dataObj.ID) || String(u.id) === String(dataObj.ID));
-            }
-            if (existingRecordIndex === -1 && dataObj.NoUnit) {
-                existingRecordIndex = targetList.findIndex(u => String(u.NoUnit) === String(dataObj.NoUnit));
-            }
-
-            if (existingRecordIndex > -1) {
-                const existingRecord = targetList[existingRecordIndex];
-                dataObj.ID = existingRecord.ID || existingRecord.id || dataObj.ID;
-                dataObj.id = dataObj.ID;
-                targetList[existingRecordIndex] = { ...existingRecord, ...dataObj };
-                isEdit = true;
-            } else {
-                if (!dataObj.ID) {
-                    const newId = "temp_unit_" + Date.now();
-                    dataObj.ID = newId;
-                    dataObj.id = newId;
+                const index = targetList.findIndex(u => String(u.ID) === String(dataObj.ID));
+                if (index > -1) {
+                    targetList[index] = { ...targetList[index], ...dataObj };
+                    isEdit = true;
                 }
+            }
+            if (!isEdit && dataObj.NoUnit) {
+                const indexUnit = targetList.findIndex(u => String(u.NoUnit) === String(dataObj.NoUnit));
+                if (indexUnit > -1) {
+                    dataObj.ID = targetList[indexUnit].ID;
+                    targetList[indexUnit] = { ...targetList[indexUnit], ...dataObj };
+                    isEdit = true;
+                }
+            }
+            if (!isEdit) {
+                if (!dataObj.ID) dataObj.ID = "temp_unit_" + Date.now();
                 targetList.unshift(dataObj);
             }
 
@@ -1958,7 +1919,7 @@
                 confirmButtonText: 'Ya, Hapus!'
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    const updatedList = unitData.filter(u => String(u.ID) !== String(id) && String(u.id) !== String(id));
+                    const updatedList = unitData.filter(u => String(u.ID) !== String(id));
                     updateUnitCacheAndRender(updatedList);
 
                     Swal.fire({
