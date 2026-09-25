@@ -552,6 +552,10 @@
                         <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2"><i class="fa-solid fa-notes-medical text-emerald-500"></i> KESEHATAN (MCU)</h4>
                         <div class="flex flex-col divide-y divide-slate-50">
                             <div class="flex justify-between items-center py-2">
+                                <span class="text-sm text-slate-600 font-medium">Terakhir MCU</span>
+                                <div id="detail_TglMCU" class="text-right"></div>
+                            </div>
+                            <div class="flex justify-between items-center py-2">
                                 <span class="text-sm text-slate-600 font-medium">Exp MCU / Jadwal Kembali</span>
                                 <div id="detail_MCU"></div>
                             </div>
@@ -1024,6 +1028,19 @@
             setHtmlSafe('detail_SIMPER_TIA', formatField('MP TIA', rowObj.ExpSIMPER_TIA, 60));
             setHtmlSafe('detail_SIM_B2', formatField('SIM B2', rowObj.ExpSIM_B2, 90));
             
+            let htmlTglMCU = '<span class="text-slate-400 text-xs italic font-medium">Belum Ada</span>';
+            if(rowObj.TglMCU && rowObj.TglMCU.trim() !== '') {
+                const parts = rowObj.TglMCU.split('T')[0].split('-');
+                if(parts.length === 3) {
+                    const y = parseInt(parts[0], 10);
+                    const m = parseInt(parts[1], 10) - 1;
+                    const d = parseInt(parts[2], 10);
+                    const dDate = new Date(y, m, d);
+                    htmlTglMCU = `<div class="font-bold text-slate-800 text-sm">${dDate.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</div>`;
+                }
+            }
+            setHtmlSafe('detail_TglMCU', htmlTglMCU);
+
             // Penggabungan MCU & Hapus Jadwal Ulang
             setHtmlSafe('detail_MCU', formatField('MCU', rowObj.ExpMCU, 90));
 
@@ -1226,12 +1243,24 @@
                 return `${emoji} ${s.date} (${statusLabel})`;
             };
 
+            let textTglMCU = '[-] Belum Ada/Tidak Berlaku';
+            if (data.TglMCU && data.TglMCU.trim() !== '') {
+                const parts = data.TglMCU.split('T')[0].split('-');
+                if (parts.length === 3) {
+                    const y = parseInt(parts[0], 10);
+                    const m = parseInt(parts[1], 10) - 1;
+                    const d = parseInt(parts[2], 10);
+                    const tglDate = new Date(y, m, d);
+                    textTglMCU = `🗓️ ${tglDate.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}`;
+                }
+            }
+
             let textToCopy = `*INFORMASI STATUS SERTIFIKASI & LISENSI*\nHalo, berikut adalah status dokumen Anda saat ini:\n\n👤 *Nama:* ${data.Nama}\n🆔 *NRP:* ${data.NRP}\n🏢 *Jabatan:* ${data.Jabatan} (${data.Perusahaan})\n\n*-- MINE PERMIT & LISENSI --*\n• MP BIB : ${getStatusText('MP BIB', data.ExpSIMPER_BIB, 60)}`;
             
             if (isDocRelevant(jbt, 'MP_TIA')) textToCopy += `\n• MP TIA : ${getStatusText('MP TIA', data.ExpSIMPER_TIA, 60)}`;
             if (isDocRelevant(jbt, 'SIM_B2')) textToCopy += `\n• SIM B2 UMUM : ${getStatusText('SIM B2', data.ExpSIM_B2, 90)}`;
             
-            textToCopy += `\n\n*-- KESEHATAN --*\n• EXP MCU / KEMBALI : ${getStatusText('MCU', data.ExpMCU, 90)}`;
+            textToCopy += `\n\n*-- KESEHATAN --*\n• TERAKHIR MCU : ${textTglMCU}\n• EXP MCU / KEMBALI : ${getStatusText('MCU', data.ExpMCU, 90)}`;
 
             const showK3 = isDocRelevant(jbt, 'DANGER_TAG') || isDocRelevant(jbt, 'KETINGGIAN') || isDocRelevant(jbt, 'SIO');
             if (showK3) {
@@ -1271,7 +1300,7 @@
                     method: 'GET',
                     redirect: 'follow',
                     headers: { 'Accept': 'application/json' },
-                    timeout: 10000
+                    timeout: 30000
                 });
                 
                 if (!response.ok) throw new Error("Gagal terhubung ke API Karyawan");
@@ -1285,7 +1314,11 @@
                     updateKaryawanCacheAndRender(data);
                 }
             } catch (err) {
-                console.error("Gagal mengambil data karyawan:", err);
+                if (err.name === 'AbortError') {
+                    console.warn("Waktu tunggu (timeout) habis saat mengambil data karyawan. Sistem menggunakan data cache.");
+                } else {
+                    console.error("Gagal mengambil data karyawan:", err);
+                }
             } finally {
                 showLoading(false);
             }
@@ -1307,19 +1340,10 @@
             let targetList = [...karyawanData];
             let isEdit = false;
 
-            // Pastikan tidak duplikat dengan memeriksa ID atau NRP
             if (dataObj.ID) {
                 const index = targetList.findIndex(k => String(k.ID) === String(dataObj.ID));
                 if (index > -1) {
                     targetList[index] = { ...targetList[index], ...dataObj };
-                    isEdit = true;
-                }
-            }
-            if (!isEdit && dataObj.NRP) {
-                const indexNrp = targetList.findIndex(k => String(k.NRP) === String(dataObj.NRP));
-                if (indexNrp > -1) {
-                    dataObj.ID = targetList[indexNrp].ID;
-                    targetList[indexNrp] = { ...targetList[indexNrp], ...dataObj };
                     isEdit = true;
                 }
             }
@@ -1344,11 +1368,15 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'saveKaryawan', data: dataObj }),
-                    timeout: 15000
+                    timeout: 30000
                 });
                 fetchData(true);
             } catch (err) {
-                console.error("Background sync error saveKaryawan:", err);
+                if (err.name === 'AbortError') {
+                    console.warn("Background sync tertunda (timeout), namun data tersimpan di cache lokal.");
+                } else {
+                    console.error("Background sync error saveKaryawan:", err);
+                }
             }
         }
 
@@ -1381,7 +1409,7 @@
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                             body: JSON.stringify({ action: 'deleteKaryawan', id: id }),
-                            timeout: 10000
+                            timeout: 30000
                         });
                         fetchData(true);
                     } catch (err) {
@@ -1703,7 +1731,7 @@
                     method: 'GET',
                     redirect: 'follow',
                     headers: { 'Accept': 'application/json' },
-                    timeout: 10000
+                    timeout: 30000
                 });
                 
                 if (!response.ok) throw new Error("Gagal terhubung ke API Unit");
@@ -1717,7 +1745,11 @@
                     updateUnitCacheAndRender(data);
                 }
             } catch (err) {
-                console.error("Gagal mengambil data unit:", err);
+                if (err.name === 'AbortError') {
+                    console.warn("Waktu tunggu (timeout) habis saat mengambil data unit. Sistem menggunakan data cache.");
+                } else {
+                    console.error("Gagal mengambil data unit:", err);
+                }
             }
         }
 
@@ -1861,19 +1893,10 @@
             let targetList = [...unitData];
             let isEdit = false;
 
-            // Pastikan tidak duplikat dengan memeriksa ID atau NoUnit
             if (dataObj.ID) {
                 const index = targetList.findIndex(u => String(u.ID) === String(dataObj.ID));
                 if (index > -1) {
                     targetList[index] = { ...targetList[index], ...dataObj };
-                    isEdit = true;
-                }
-            }
-            if (!isEdit && dataObj.NoUnit) {
-                const indexUnit = targetList.findIndex(u => String(u.NoUnit) === String(dataObj.NoUnit));
-                if (indexUnit > -1) {
-                    dataObj.ID = targetList[indexUnit].ID;
-                    targetList[indexUnit] = { ...targetList[indexUnit], ...dataObj };
                     isEdit = true;
                 }
             }
@@ -1898,11 +1921,15 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'saveUnit', data: dataObj }),
-                    timeout: 15000
+                    timeout: 30000
                 });
                 fetchUnitData(true);
             } catch (err) {
-                console.error("Background sync error saveUnit:", err);
+                if (err.name === 'AbortError') {
+                    console.warn("Background sync tertunda (timeout), namun unit tersimpan di cache lokal.");
+                } else {
+                    console.error("Background sync error saveUnit:", err);
+                }
             }
         }
 
@@ -1935,7 +1962,7 @@
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                             body: JSON.stringify({ action: 'deleteUnit', id: id }),
-                            timeout: 10000
+                            timeout: 30000
                         });
                         fetchUnitData(true);
                     } catch (err) {
