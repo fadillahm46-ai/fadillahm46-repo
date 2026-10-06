@@ -90,7 +90,7 @@
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 sm:p-9 relative z-10">
             <div class="mb-8">
                 <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight" style="font-family: 'Poppins', sans-serif;">Hello!</h2>
-                <p class="text-xs text-slate-400 font-medium mt-1">Sign in to Get Started</p>
+                <p class="text-xs text-slate-400 font-medium mt-1">Segera Cek Data Diri Anda</p>
             </div>
 
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
@@ -510,15 +510,15 @@
                             <i class="fa-solid fa-id-card text-blue-500"></i> Mine Permit & Lisensi
                         </h4>
                         <div class="space-y-2 divide-y divide-slate-100 text-xs">
-                            <div class="flex justify-between items-center pt-2" id="mp_container_BIB">
+                            <div class="flex justify-between items-start pt-2" id="mp_container_BIB">
                                 <span class="font-medium text-slate-600">Mine Permit BIB</span>
                                 <div class="flex items-center gap-2" id="mp_row_BIB"></div>
                             </div>
-                            <div class="flex justify-between items-center pt-2" id="mp_container_TIA">
+                            <div class="flex justify-between items-start pt-2" id="mp_container_TIA">
                                 <span class="font-medium text-slate-600">Mine Permit TIA</span>
                                 <div class="flex items-center gap-2" id="mp_row_TIA"></div>
                             </div>
-                            <div class="flex justify-between items-center pt-2" id="mp_container_SIM">
+                            <div class="flex justify-between items-start pt-2" id="mp_container_SIM">
                                 <span class="font-medium text-slate-600">SIM B2 Umum</span>
                                 <div class="flex items-center gap-2" id="mp_row_SIM"></div>
                             </div>
@@ -535,7 +535,7 @@
                                 <span class="font-medium text-slate-600">Terakhir MCU</span>
                                 <div class="text-right font-bold text-slate-800" id="mp_row_TglMCU">-</div>
                             </div>
-                            <div class="flex justify-between items-center pt-2">
+                            <div class="flex justify-between items-start pt-2">
                                 <span class="font-medium text-slate-600">Exp MCU / Kembali</span>
                                 <div class="flex items-center gap-2" id="mp_row_MCU"></div>
                             </div>
@@ -548,15 +548,15 @@
                             <i class="fa-solid fa-helmet-safety text-amber-500"></i> K3 & Keselamatan
                         </h4>
                         <div class="space-y-2 divide-y divide-slate-100 text-xs">
-                            <div class="flex justify-between items-center pt-2" id="mp_container_DTAG">
+                            <div class="flex justify-between items-start pt-2" id="mp_container_DTAG">
                                 <span class="font-medium text-slate-600">Danger Tag</span>
                                 <div class="flex items-center gap-2" id="mp_row_DTAG"></div>
                             </div>
-                            <div class="flex justify-between items-center pt-2" id="mp_container_KET">
+                            <div class="flex justify-between items-start pt-2" id="mp_container_KET">
                                 <span class="font-medium text-slate-600">Sert. Ketinggian</span>
                                 <div class="flex items-center gap-2" id="mp_row_KET"></div>
                             </div>
-                            <div class="flex justify-between items-center pt-2" id="mp_container_SIO">
+                            <div class="flex justify-between items-start pt-2" id="mp_container_SIO">
                                 <span class="font-medium text-slate-600">SIO</span>
                                 <div class="flex items-center gap-2" id="mp_row_SIO"></div>
                             </div>
@@ -927,9 +927,21 @@
                         <label class="font-semibold text-slate-600">Tanggal Lahir</label>
                         <input type="date" id="edit_TglLahir" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <div class="space-y-1 mb-4">
+                    <div class="space-y-1 mb-3">
                         <label class="font-semibold text-slate-600">Nomor WhatsApp / HP</label>
                         <input type="text" id="edit_NoHP" placeholder="08..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="space-y-1 mb-4">
+                        <div class="flex justify-between items-center">
+                            <label class="font-semibold text-slate-600">Ganti Password Baru</label>
+                            <span class="text-[10px] text-slate-400">Kosongkan jika tidak diubah</span>
+                        </div>
+                        <div class="relative">
+                            <input type="password" id="edit_Password" placeholder="Masukkan password baru..." class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-xs">
+                            <button type="button" onclick="toggleEditPassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 text-xs cursor-pointer">
+                                <i id="editPassEyeIcon" class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
@@ -1066,7 +1078,7 @@
         }
 
         function checkSession() {
-            const savedUser = sessionStorage.getItem('se_user');
+            const savedUser = localStorage.getItem('se_user');
             if (savedUser) {
                 try {
                     currentUser = JSON.parse(savedUser);
@@ -1120,7 +1132,7 @@
             // Login Admin
             if (username.toLowerCase() === 'admin' && password === 'admin123') {
                 currentUser = { role: 'admin', data: { Nama: 'Administrator', NRP: 'admin' } };
-                sessionStorage.setItem('se_user', JSON.stringify(currentUser));
+                localStorage.setItem('se_user', JSON.stringify(currentUser));
                 Swal.fire({ icon: 'success', title: 'Login Berhasil!', text: 'Selamat datang, Administrator.', timer: 1200, showConfirmButton: false });
                 applyUserView();
                 return;
@@ -1152,7 +1164,7 @@
             }
 
             currentUser = { role: 'manpower', data: employee };
-            sessionStorage.setItem('se_user', JSON.stringify(currentUser));
+            localStorage.setItem('se_user', JSON.stringify(currentUser));
             Swal.fire({ icon: 'success', title: 'Login Berhasil!', text: `Selamat datang, ${employee.Nama}`, timer: 1200, showConfirmButton: false });
             applyUserView();
         }
@@ -1160,6 +1172,18 @@
         function toggleLoginPassword() {
             const input = document.getElementById('loginPassword');
             const icon = document.getElementById('loginEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-regular fa-eye';
+            }
+        }
+
+        function toggleEditPassword() {
+            const input = document.getElementById('edit_Password');
+            const icon = document.getElementById('editPassEyeIcon');
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.className = 'fa-solid fa-eye-slash';
@@ -1190,7 +1214,7 @@
                 cancelButtonText: 'Batal'
             }).then((res) => {
                 if (res.isConfirmed) {
-                    sessionStorage.removeItem('se_user');
+                    localStorage.removeItem('se_user');
                     currentUser = null;
                     document.getElementById('loginForm').reset();
                     showLoginView(true);
@@ -1202,12 +1226,12 @@
             // Update data terbaru dari memory
             const latest = karyawanData.find(k => String(k.ID) === String(row.ID)) || row;
             currentUser.data = latest;
-            sessionStorage.setItem('se_user', JSON.stringify(currentUser));
+            localStorage.setItem('se_user', JSON.stringify(currentUser));
 
             document.getElementById('mpCardNama').innerText = latest.Nama || '-';
             document.getElementById('mpCardNrp').innerText = `NRP: ${latest.NRP || '-'}`;
             document.getElementById('mpCardJabatan').innerText = `${latest.Jabatan || '-'} • ${latest.Perusahaan || '-'}`;
-            document.getElementById('mpCardNoHp').innerHTML = `<i class="fa-brands fa-whatsapp mr-1"></i> ${latest.NoHP || 'Belum diisi'}`;
+            document.getElementById('mpCardNoHP').innerHTML = `<i class="fa-brands fa-whatsapp mr-1"></i> ${latest.NoHP || 'Belum diisi'}`;
 
             const renderDocRow = (elementId, docLabel, dateVal, docKey) => {
                 const el = document.getElementById(elementId);
@@ -1224,13 +1248,43 @@
                 else if (status.val === 2) badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
                 else badgeClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
 
+                // Logika khusus keterangan pengajuan / info admin saat status kuning, merah, atau hitam
+                let actionNoticeHtml = '';
+                if (status.val === 0 || status.val === 1 || status.val === 2) {
+                    if (docKey === 'BIB') {
+                        actionNoticeHtml = `
+                            <div class="mt-1">
+                                <a href="https://docs.google.com/forms/d/e/1FAIpQLScYVkFmG0k0yXZLMjZVd0rZyx87TOVZMR5jh-_Bubzgzh3t4A/viewform" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 transition-all px-2 py-0.5 rounded border border-blue-300 shadow-sm" title="Klik untuk mengajukan perpanjangan permit BIB">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Segera Ajukan
+                                </a>
+                            </div>`;
+                    } else if (docKey === 'TIA') {
+                        actionNoticeHtml = `
+                            <div class="mt-1">
+                                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdbKLPdDhuf7XWvNR0doa1gMAQpB65OqubQD6cK0-3vIfhcLg/viewform" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 hover:text-white bg-purple-50 hover:bg-purple-600 transition-all px-2 py-0.5 rounded border border-purple-300 shadow-sm" title="Klik untuk mengajukan perpanjangan permit TIA">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Segera Ajukan
+                                </a>
+                            </div>`;
+                    } else {
+                        actionNoticeHtml = `
+                            <div class="mt-1">
+                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                                    <i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Segera Info Admin
+                                </span>
+                            </div>`;
+                    }
+                }
+
                 const safeRow = JSON.stringify(latest).replace(/'/g, "\\'");
                 el.innerHTML = `
-                    <div class="text-right">
-                        <span class="font-bold text-slate-800 text-xs">${status.date}</span>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ml-1 ${badgeClass}">${status.statusText}</span>
+                    <div class="text-right flex flex-col items-end">
+                        <div class="flex items-center justify-end">
+                            <span class="font-bold text-slate-800 text-xs">${status.date}</span>
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ml-1 ${badgeClass}">${status.statusText}</span>
+                        </div>
+                        ${actionNoticeHtml}
                     </div>
-                    <button onclick="openPhotoModal('${safeRow}', '${docKey}', '${docLabel}')" class="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors border border-blue-200 cursor-pointer" title="Lihat / Ganti Foto">
+                    <button onclick="openPhotoModal('${safeRow}', '${docKey}', '${docLabel}')" class="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors border border-blue-200 cursor-pointer shrink-0 ml-1" title="Lihat / Ganti Foto">
                         <i class="fa-solid fa-eye text-[10px]"></i>
                     </button>
                 `;
@@ -1305,6 +1359,13 @@
             const data = currentUser.data;
             document.getElementById('edit_TglLahir').value = data.TglLahir || '';
             document.getElementById('edit_NoHP').value = data.NoHP || '';
+            const passInput = document.getElementById('edit_Password');
+            if (passInput) {
+                passInput.value = '';
+                passInput.type = 'password';
+                const eyeIcon = document.getElementById('editPassEyeIcon');
+                if (eyeIcon) eyeIcon.className = 'fa-regular fa-eye';
+            }
 
             const allDocs = [
                 { key: 'BIB', label: 'Mine Permit BIB', rel: true },
@@ -1341,8 +1402,12 @@
             e.preventDefault();
             const tglLahir = document.getElementById('edit_TglLahir').value;
             const noHp = document.getElementById('edit_NoHP').value.trim();
+            const newPassword = document.getElementById('edit_Password').value.trim();
 
             const updatedData = { ...currentUser.data, TglLahir: tglLahir, NoHP: noHp };
+            if (newPassword) {
+                updatedData.Password = newPassword;
+            }
 
             // Update memori dan cache
             const targetList = [...karyawanData];
@@ -1351,11 +1416,17 @@
             
             updateKaryawanCacheAndRender(targetList);
             currentUser.data = updatedData;
-            sessionStorage.setItem('se_user', JSON.stringify(currentUser));
+            localStorage.setItem('se_user', JSON.stringify(currentUser));
             renderManpowerPortal(updatedData);
             closeEditPribadiModal();
 
-            Swal.fire({ icon: 'success', title: 'Data Berhasil Disimpan!', timer: 1500, showConfirmButton: false });
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'Data Berhasil Disimpan!', 
+                text: newPassword ? 'Password dan data pribadi Anda telah berhasil diperbarui.' : 'Data pribadi Anda berhasil diperbarui.',
+                timer: 1800, 
+                showConfirmButton: false 
+            });
 
             // Background sync ke backend
             try {
@@ -1449,7 +1520,7 @@
 
             if (currentUser && currentUser.role === 'manpower') {
                 currentUser.data = updatedRow;
-                sessionStorage.setItem('se_user', JSON.stringify(currentUser));
+                localStorage.setItem('se_user', JSON.stringify(currentUser));
                 renderManpowerPortal(updatedRow);
             }
 
@@ -1717,7 +1788,19 @@
                 if (Array.isArray(data)) {
                     updateKaryawanCacheAndRender(data);
                     if (currentUser && currentUser.role === 'manpower') {
-                        renderManpowerPortal(currentUser.data);
+                        const updatedSelf = data.find(k => String(k.ID) === String(currentUser.data.ID) || String(k.NRP) === String(currentUser.data.NRP));
+                        if (updatedSelf) {
+                            if (updatedSelf.StatusAkun === 'Non-Aktif') {
+                                localStorage.removeItem('se_user');
+                                currentUser = null;
+                                showLoginView(true);
+                                Swal.fire('Akun Dinonaktifkan', 'Akun Anda telah dinonaktifkan oleh Admin.', 'warning');
+                                return;
+                            }
+                            currentUser.data = updatedSelf;
+                            localStorage.setItem('se_user', JSON.stringify(currentUser));
+                            renderManpowerPortal(updatedSelf);
+                        }
                     }
                 }
             } catch (err) {
