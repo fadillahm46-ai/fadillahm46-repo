@@ -1,5 +1,6 @@
 // =========================================================================
-// BACKEND GOOGLE APPS SCRIPT - SE DASHBOARD MONITORING & GOOGLE DRIVE UPLOAD
+// BACKEND GOOGLE APPS SCRIPT - SE MONITORING & GOOGLE DRIVE INTEGRATION
+// Versi: 2.5 (Didukung Pelindung Crash & Uji Manual)
 // =========================================================================
 
 var DRIVE_FOLDER_ID = "1pA4e24uLetVNBhj0GmrlV0sS-PvPREC9";
@@ -21,7 +22,9 @@ function getSpreadsheet() {
   try {
     ss = SpreadsheetApp.getActiveSpreadsheet();
     if (!ss) ss = SpreadsheetApp.getActive();
-  } catch (e) {}
+  } catch (e) {
+    Logger.log("Peringatan saat mengambil spreadsheet: " + e.toString());
+  }
   return ss;
 }
 
@@ -49,13 +52,6 @@ function getSheetUnit(ss) {
   return sheet;
 }
 
-// FUNGSI PENGUJIAN IZIN GOOGLE DRIVE (JALANKAN DARI EDITOR APPS SCRIPT)
-function ujiIzinDriveDanFolder() {
-  var folder = dapatkanFolderDrive();
-  Logger.log("BERHASIL! Folder aktif: " + folder.getName() + " (ID: " + folder.getId() + ")");
-  SpreadsheetApp.getActiveSpreadsheet().toast("Koneksi Google Drive Berhasil Terhubung!", "Sukses", 5);
-}
-
 function dapatkanFolderDrive() {
   var folder = null;
   try {
@@ -63,7 +59,7 @@ function dapatkanFolderDrive() {
       folder = DriveApp.getFolderById(DRIVE_FOLDER_ID.trim());
     }
   } catch (errId) {
-    Logger.log("Peringatan ID Folder: " + errId.toString());
+    Logger.log("Peringatan ID Folder Drive: " + errId.toString());
   }
 
   // Jika folder ID khusus tidak dapat dibuka, buat/gunakan folder cadangan otomatis
@@ -76,7 +72,21 @@ function dapatkanFolderDrive() {
       folder = DriveApp.createFolder(namaFolder);
     }
   }
+  
+  if (!folder) {
+    folder = DriveApp.getRootFolder();
+  }
+  
   return folder;
+}
+
+function ujiIzinDriveDanFolder() {
+  var folder = dapatkanFolderDrive();
+  Logger.log("BERHASIL! Folder aktif: " + folder.getName() + " (ID: " + folder.getId() + ")");
+  var ss = getSpreadsheet();
+  if (ss) {
+    ss.toast("Koneksi Google Drive Berhasil Terhubung ke folder: " + folder.getName(), "Sukses", 5);
+  }
 }
 
 function doGet(e) {
@@ -96,7 +106,7 @@ function doPost(e) {
     var payload = JSON.parse(contents);
     var action = payload.action;
 
-    // Mendukung baik 'uploadPhoto' maupun 'uploadDocPhoto'
+    // Mendukung 'uploadPhoto' maupun 'uploadDocPhoto'
     if (action === 'uploadPhoto' || action === 'uploadDocPhoto') {
       return responseJSON(handlePhotoUploadToDrive(payload));
     }
@@ -116,16 +126,21 @@ function doPost(e) {
       return responseJSON(importBulkData(payload.data));
     }
 
-    return responseJSON({ success: false, status: 'error', message: 'Action tidak dikenal' });
+    return responseJSON({ success: false, status: 'error', error: 'Action tidak dikenal: ' + action, message: 'Action tidak dikenal: ' + action });
 
   } catch (err) {
-    return responseJSON({ success: false, status: 'error', error: err.toString() });
+    return responseJSON({ success: false, status: 'error', error: err.toString(), message: err.toString() });
   } finally {
     lock.releaseLock();
   }
 }
 
 function handlePhotoUploadToDrive(payload) {
+  // Pengaman jika fungsi dipanggil tanpa parameter
+  if (!payload || typeof payload !== "object") {
+    return { success: false, status: "error", message: "Data payload foto tidak diterima." };
+  }
+
   try {
     var folder = dapatkanFolderDrive();
     var base64 = payload.base64 || "";
@@ -134,7 +149,7 @@ function handlePhotoUploadToDrive(payload) {
     var id = payload.id || "";
 
     if (!base64) {
-      return { success: false, status: "error", error: "Data gambar tidak diterima" };
+      return { success: false, status: "error", error: "Data gambar tidak diterima", message: "Data gambar tidak diterima" };
     }
 
     var cleanBase64 = base64;
@@ -199,7 +214,8 @@ function handlePhotoUploadToDrive(payload) {
     return {
       success: false,
       status: "error",
-      error: errUpload.toString()
+      error: errUpload.toString(),
+      message: errUpload.toString()
     };
   }
 }
@@ -243,6 +259,16 @@ function getKaryawanData() {
 }
 
 function saveKaryawanData(item) {
+  // PENGAMAN CRASH: Jika fungsi tidak sengaja dijalankan dari tombol Play/Run Apps Script tanpa data
+  if (!item || typeof item !== "object") {
+    Logger.log("Pemberitahuan: saveKaryawanData membutuhkan data item dari web. Jika ingin menguji manual, jalankan fungsi 'ujiSimpanKaryawan()'.");
+    return { 
+      success: false, 
+      status: "error", 
+      message: "Data karyawan kosong. Untuk tes dari editor Apps Script, silakan pilih fungsi 'ujiSimpanKaryawan()'." 
+    };
+  }
+
   var ss = getSpreadsheet();
   var sheet = getSheetKaryawan(ss);
   var data = sheet.getDataRange().getValues();
@@ -275,7 +301,7 @@ function saveKaryawanData(item) {
     if (!item.StatusAkun) item.StatusAkun = 'Aktif';
 
     var newRow = headers.map(function(h) {
-      var val = item[h] || '';
+      var val = item[h] !== undefined ? item[h] : '';
       if (h === 'NoHP' && val !== '') val = "'" + String(val).replace(/^'/, '');
       return val;
     });
@@ -295,6 +321,9 @@ function saveKaryawanData(item) {
 }
 
 function deleteKaryawanData(id) {
+  if (!id) {
+    return { success: false, status: 'error', message: 'ID karyawan tidak diberikan.' };
+  }
   var ss = getSpreadsheet();
   var sheet = getSheetKaryawan(ss);
   var data = sheet.getDataRange().getValues();
@@ -304,7 +333,7 @@ function deleteKaryawanData(id) {
       return { success: true, status: 'success' };
     }
   }
-  return { success: false, status: 'not_found' };
+  return { success: false, status: 'not_found', message: 'Data tidak ditemukan' };
 }
 
 function getUnitData() {
@@ -332,6 +361,12 @@ function getUnitData() {
 }
 
 function saveUnitData(item) {
+  // PENGAMAN CRASH: Jika fungsi tidak sengaja dijalankan dari tombol Play/Run Apps Script tanpa data
+  if (!item || typeof item !== "object") {
+    Logger.log("Pemberitahuan: saveUnitData membutuhkan data unit dari web.");
+    return { success: false, status: "error", message: "Data unit kosong." };
+  }
+
   var ss = getSpreadsheet();
   var sheet = getSheetUnit(ss);
   var data = sheet.getDataRange().getValues();
@@ -347,7 +382,7 @@ function saveUnitData(item) {
 
   if (rowIndex === -1) {
     if (!item.ID || String(item.ID).indexOf('temp_') === 0) item.ID = Utilities.getUuid();
-    var newRow = headers.map(function(h) { return item[h] || ''; });
+    var newRow = headers.map(function(h) { return item[h] !== undefined ? item[h] : ''; });
     sheet.appendRow(newRow);
   } else {
     for (var h = 0; h < headers.length; h++) {
@@ -360,6 +395,9 @@ function saveUnitData(item) {
 }
 
 function deleteUnitData(id) {
+  if (!id) {
+    return { success: false, status: 'error', message: 'ID unit tidak diberikan.' };
+  }
   var ss = getSpreadsheet();
   var sheet = getSheetUnit(ss);
   var data = sheet.getDataRange().getValues();
@@ -369,7 +407,7 @@ function deleteUnitData(id) {
       return { success: true, status: 'success' };
     }
   }
-  return { success: false, status: 'not_found' };
+  return { success: false, status: 'not_found', message: 'Data unit tidak ditemukan' };
 }
 
 function importBulkData(items) {
@@ -405,4 +443,24 @@ function setupDatabaseLengkap() {
   }
 
   ujiIzinDriveDanFolder();
+}
+
+// ALIAS AGAR SEMUA NAMA FUNGSI SETUP BEKERJA
+function tambahSemuaKolomBaru() {
+  setupDatabaseLengkap();
+}
+
+// FUNGSI UNTUK TES MANUAL DARI TOMBOL PLAY/RUN APPS SCRIPT
+function ujiSimpanKaryawan() {
+  var dataUji = {
+    NRP: "12345678",
+    Nama: "PENGUJIAN SISTEM",
+    Perusahaan: "PT PPA",
+    Jabatan: "ADMINISTRASI",
+    TglLahir: "1995-05-15",
+    NoHP: "081234567890",
+    StatusAkun: "Aktif"
+  };
+  var hasil = saveKaryawanData(dataUji);
+  Logger.log("Hasil Uji Simpan Karyawan: " + JSON.stringify(hasil));
 }
