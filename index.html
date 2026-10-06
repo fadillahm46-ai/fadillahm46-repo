@@ -601,7 +601,7 @@
 
             <div class="p-4 flex-1 flex flex-col items-center justify-center bg-slate-50 overflow-y-auto">
                 <div class="w-full h-64 sm:h-72 bg-slate-200 rounded-xl overflow-hidden border border-slate-300 flex items-center justify-center relative shadow-inner">
-                    <img id="photoModalImg" src="" alt="Dokumen" class="w-full h-full object-contain hidden">
+                    <img id="photoModalImg" src="" alt="Dokumen" class="w-full h-full object-contain hidden" onerror="handlePhotoImgError(this)">
                     <div id="photoModalPlaceholder" class="text-center p-6 text-slate-500">
                         <i class="fa-regular fa-image text-5xl mb-2 text-slate-400"></i>
                         <p class="text-xs font-bold text-slate-700">Foto Belum Diunggah</p>
@@ -613,10 +613,15 @@
                 <input type="file" id="photoFileInput" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
             </div>
 
-            <div class="p-3.5 bg-white border-t border-slate-200 flex justify-between gap-3">
-                <button type="button" onclick="closePhotoModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs rounded-lg transition-colors cursor-pointer">Tutup</button>
+            <div class="p-3.5 bg-white border-t border-slate-200 flex justify-between items-center gap-2">
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closePhotoModal()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs rounded-lg transition-colors cursor-pointer">Tutup</button>
+                    <a id="photoModalDriveLink" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-2.5 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold text-xs rounded-lg border border-blue-200 transition-colors items-center gap-1.5" title="Buka foto resolusi penuh di Google Drive">
+                        <i class="fa-brands fa-google-drive"></i> Buka Asli
+                    </a>
+                </div>
                 <button type="button" onclick="triggerPhotoFileInput()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg shadow-md shadow-blue-500/30 transition-all flex items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-camera"></i> Ganti / Unggah Foto
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Ganti / Unggah Foto
                 </button>
             </div>
         </div>
@@ -1513,21 +1518,40 @@
             document.getElementById('photoModalTitle').innerText = `Foto: ${docTitle} (${namaText})`;
             const imgEl = document.getElementById('photoModalImg');
             const placeholderEl = document.getElementById('photoModalPlaceholder');
+            const driveLinkEl = document.getElementById('photoModalDriveLink');
 
             const photoField = `Foto_${docKey}`;
             const photoSrc = row ? (row[photoField] || (row.Photos && row.Photos[docKey]) || null) : null;
 
-            if (photoSrc) {
+            if (photoSrc && photoSrc.trim() !== '') {
                 imgEl.src = photoSrc;
                 imgEl.classList.remove('hidden');
                 placeholderEl.classList.add('hidden');
+
+                if (photoSrc.startsWith('http')) {
+                    driveLinkEl.href = photoSrc;
+                    driveLinkEl.classList.remove('hidden');
+                    driveLinkEl.classList.add('inline-flex');
+                } else {
+                    driveLinkEl.classList.add('hidden');
+                    driveLinkEl.classList.remove('inline-flex');
+                }
             } else {
                 imgEl.src = '';
                 imgEl.classList.add('hidden');
                 placeholderEl.classList.remove('hidden');
+                driveLinkEl.classList.add('hidden');
+                driveLinkEl.classList.remove('inline-flex');
             }
 
             document.getElementById('photoModal').classList.add('modal-active');
+        }
+
+        function handlePhotoImgError(img) {
+            if (img.src && img.src.includes('lh3.googleusercontent.com/d/')) {
+                const id = img.src.split('/d/')[1];
+                img.src = `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+            }
         }
 
         function closePhotoModal() {
@@ -1538,49 +1562,33 @@
             document.getElementById('photoFileInput').click();
         }
 
-        function compressImageForStorage(file, maxChars, callback) {
+        function compressImageForUpload(file, callback) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    let maxDimension = 480;
-                    let quality = 0.6;
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-
-                    function process() {
-                        let w = img.width;
-                        let h = img.height;
+                    const maxDim = 1280;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > maxDim || h > maxDim) {
                         if (w > h) {
-                            if (w > maxDimension) {
-                                h = Math.round((h * maxDimension) / w);
-                                w = maxDimension;
-                            }
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
                         } else {
-                            if (h > maxDimension) {
-                                w = Math.round((w * maxDimension) / h);
-                                h = maxDimension;
-                            }
-                        }
-                        canvas.width = w;
-                        canvas.height = h;
-                        ctx.clearRect(0, 0, w, h);
-                        ctx.drawImage(img, 0, 0, w, h);
-
-                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
-                        if (dataUrl.length > maxChars && (quality > 0.15 || maxDimension > 200)) {
-                            if (quality > 0.3) {
-                                quality -= 0.1;
-                            } else {
-                                maxDimension -= 50;
-                                quality = 0.5;
-                            }
-                            process();
-                        } else {
-                            callback(dataUrl);
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
                         }
                     }
-                    process();
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    callback(dataUrl);
+                };
+                img.onerror = function() {
+                    callback(e.target.result);
                 };
                 img.src = e.target.result;
             };
@@ -1592,71 +1600,102 @@
             if (!file) return;
 
             Swal.fire({
-                title: 'Mengompres Foto...',
-                text: 'Menyesuaikan ukuran gambar untuk database server',
+                title: 'Menyiapkan Gambar...',
+                text: 'Mengompres foto untuk diunggah ke Google Drive',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading()
             });
 
-            compressImageForStorage(file, 35000, function(compressedBase64) {
-                Swal.close();
-                saveDocumentPhoto(compressedBase64);
+            compressImageForUpload(file, function(base64Data) {
+                uploadPhotoToDrive(base64Data);
             });
             event.target.value = '';
         }
 
-        async function saveDocumentPhoto(base64Data) {
-            const { rowObj, docKey, docTitle } = activePhotoDoc;
-            if (!rowObj || !docKey) return;
-
-            const photoField = `Foto_${docKey}`;
-            const updatedRow = { ...rowObj, [photoField]: base64Data };
-
-            const targetList = [...karyawanData];
-            const idx = targetList.findIndex(k => String(k.ID) === String(rowObj.ID) || String(k.NRP) === String(rowObj.NRP));
-            if (idx > -1) targetList[idx] = updatedRow;
-            updateKaryawanCacheAndRender(targetList);
-
-            if (currentUser && currentUser.role === 'manpower') {
-                currentUser.data = updatedRow;
-                localStorage.setItem('se_user', JSON.stringify(currentUser));
-                renderManpowerPortal(updatedRow);
+        async function uploadPhotoToDrive(base64Data) {
+            const { rowId, rowObj, docKey, docTitle } = activePhotoDoc;
+            if (!rowObj || !docKey) {
+                Swal.fire('Gagal', 'Data karyawan atau dokumen tidak ditemukan.', 'error');
+                return;
             }
 
-            document.getElementById('photoModalImg').src = base64Data;
-            document.getElementById('photoModalImg').classList.remove('hidden');
-            document.getElementById('photoModalPlaceholder').classList.add('hidden');
-
             Swal.fire({
-                title: 'Menyimpan Foto...',
-                text: 'Menyimpan ke database server...',
+                title: 'Mengunggah ke Google Drive...',
+                html: '<div class="text-xs text-slate-500">Menyimpan file ke folder Drive & memperbarui link di Spreadsheet...</div>',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading()
             });
 
             try {
-                const res = await fetchWithTimeout(API_URL, {
+                const response = await fetchWithTimeout(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'saveKaryawan', data: updatedRow }),
-                    timeout: 25000
+                    body: JSON.stringify({
+                        action: 'uploadDocPhoto',
+                        id: rowObj.ID,
+                        nrp: rowObj.NRP,
+                        docKey: docKey,
+                        docTitle: docTitle,
+                        base64: base64Data
+                    }),
+                    timeout: 45000
                 });
-                const resText = await res.text();
-                let resJson = {};
-                try { resJson = JSON.parse(resText); } catch(ex) {}
 
-                if (resJson.error) {
-                    throw new Error(resJson.error);
+                const resText = await response.text();
+                let resJson = {};
+                try { resJson = JSON.parse(resText); } catch(ex) { resJson = { error: resText }; }
+
+                if (!resJson.success) {
+                    throw new Error(resJson.error || 'Gagal menyimpan ke Google Drive.');
                 }
 
-                Swal.fire({ icon: 'success', title: 'Foto Tersimpan!', text: `Foto ${docTitle} berhasil disimpan ke database.`, timer: 1500, showConfirmButton: false });
-            } catch(e) {
-                console.error("Save photo server error:", e);
-                Swal.fire({ 
-                    icon: 'warning', 
-                    title: 'Tersimpan di Perangkat', 
-                    text: 'Foto tersimpan di perangkat Anda, namun gagal tersambung ke database Google Sheet (' + (e.message || 'Timeout') + ').', 
-                    confirmButtonColor: '#2563eb' 
+                const driveUrl = resJson.url;
+                const photoField = `Foto_${docKey}`;
+
+                // Perbarui daftar di memori & cache lokal
+                const targetList = [...karyawanData];
+                const idx = targetList.findIndex(k => String(k.ID) === String(rowObj.ID) || String(k.NRP) === String(rowObj.NRP));
+                if (idx > -1) {
+                    targetList[idx][photoField] = driveUrl;
+                    updateKaryawanCacheAndRender(targetList);
+                }
+
+                if (currentUser && currentUser.data && (String(currentUser.data.ID) === String(rowObj.ID) || String(currentUser.data.NRP) === String(rowObj.NRP))) {
+                    currentUser.data[photoField] = driveUrl;
+                    localStorage.setItem('se_user', JSON.stringify(currentUser));
+                    if (currentUser.role === 'manpower') {
+                        renderManpowerPortal(currentUser.data);
+                    }
+                }
+
+                // Tampilkan foto di modal
+                const imgEl = document.getElementById('photoModalImg');
+                const placeholderEl = document.getElementById('photoModalPlaceholder');
+                const driveLinkEl = document.getElementById('photoModalDriveLink');
+
+                imgEl.src = driveUrl;
+                imgEl.classList.remove('hidden');
+                placeholderEl.classList.add('hidden');
+
+                driveLinkEl.href = driveUrl;
+                driveLinkEl.classList.remove('hidden');
+                driveLinkEl.classList.add('inline-flex');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Tersimpan di Google Drive!',
+                    text: `Foto ${docTitle} berhasil diunggah ke Google Drive dan tautan disimpan ke Spreadsheet.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+            } catch (err) {
+                console.error("Upload to Drive error:", err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mengunggah',
+                    text: 'Kendala saat menyimpan foto ke Google Drive: ' + (err.message || 'Timeout / Jaringan lambat'),
+                    confirmButtonColor: '#2563eb'
                 });
             }
         }
