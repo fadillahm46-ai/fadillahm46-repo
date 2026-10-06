@@ -1,261 +1,285 @@
-// ==========================================
-// KONFIGURASI DATABASE SPREADSHEET
-// ==========================================
-const SPREADSHEET_ID = '1MEq3tn_6jhCrSTQB1fdq1ai13SXyPRccKaxcwPSUXLM';
+// =========================================================================
+// BACKEND GOOGLE APPS SCRIPT - SE DASHBOARD MONITORING & MANPOWER PORTAL
+// =========================================================================
 
-function getSpreadsheet() {
-  return SpreadsheetApp.openById(SPREADSHEET_ID);
-}
-
-// ==========================================
-// HANDLER ROUTING UNTUK VERCEL & WEB APP (GET & POST)
-// ==========================================
-function doGet(e) {
-  // Jika dipanggil oleh Vercel via fetch dengan parameter action
-  if (e && e.parameter && e.parameter.action) {
-    const action = e.parameter.action;
-
-    if (action === 'getKaryawan') {
-      return ContentService.createTextOutput(getDataKaryawan())
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    if (action === 'getUnit') {
-      return ContentService.createTextOutput(getDataUnit())
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-  }
-
-  // Tampilan Default jika dibuka langsung di Google Apps Script
-  return HtmlService.createHtmlOutputFromFile('index')
-    .setTitle('SE Dashboard - Monitoring Karyawan & Unit')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
-}
-
-function doPost(e) {
-  try {
-    const contents = JSON.parse(e.postData.contents);
-    const action = contents.action;
-    let result = { success: false, message: "Aksi tidak dikenal" };
-
-    if (action === 'saveKaryawan') {
-      result = saveKaryawan(contents.data);
-    } else if (action === 'deleteKaryawan') {
-      result = deleteKaryawan(contents.id);
-    } else if (action === 'importKaryawanBulk') {
-      result = importKaryawanBulk(contents.data);
-    } else if (action === 'saveUnit') {
-      result = saveUnit(contents.data);
-    } else if (action === 'deleteUnit') {
-      result = deleteUnit(contents.id);
-    }
-
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// ==========================================
-// SETUP INITIAL DATABASE
-// ==========================================
-function setupDatabase() {
-  const ss = getSpreadsheet();
-  let sheet = ss.getSheetByName('Data Karyawan');
+/**
+ * JALANKAN FUNGSI INI DARI APPS SCRIPT UNTUK MENAMBAHKAN KOLOM SECARA INSTAN!
+ * Pilih 'tambahSemuaKolomBaru' di menu dropdown atas, lalu klik tombol 'Jalankan' (Run).
+ */
+function tambahSemuaKolomBaru() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Cari sheet 'Data Karyawan' atau gunakan sheet pertama jika namanya berbeda
+  var sheet = ss.getSheetByName('Data Karyawan');
   if (!sheet) {
-    sheet = ss.insertSheet('Data Karyawan');
-    const headers = [
-      "ID", "NRP", "Nama", "Perusahaan", "Jabatan", "TglLahir",
-      "ExpSIMPER_BIB", "ExpSIMPER_TIA", "ExpSIM_B2", "TglMCU", "ExpMCU",
-      "TglLOTOTO", "ExpDangerTag", "TglAwareness", "ExpKetinggian", "TglSIO", "ExpSIO"
-    ];
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#f8fafc");
-    sheet.setFrozenRows(1);
+    sheet = ss.getSheets()[0];
   }
 
-  let unitSheet = ss.getSheetByName('Data Unit');
-  if (!unitSheet) {
-    unitSheet = ss.insertSheet('Data Unit');
-    const unitHeaders = ["ID", "NoUnit", "Model", "ExpKom_BIB", "ExpKom_TIA", "ExpKom_TMA"];
-    unitSheet.getRange(1, 1, 1, unitHeaders.length).setValues([unitHeaders]);
-    unitSheet.getRange(1, 1, 1, unitHeaders.length).setFontWeight("bold").setBackground("#f8fafc");
-    unitSheet.setFrozenRows(1);
-  }
-  return "Setup Database Selesai!";
-}
+  // Daftar kolom baru yang akan ditambahkan jika belum ada
+  var kolomBaru = [
+    "NoHP",
+    "Password",
+    "StatusAkun",
+    "Foto_BIB",
+    "Foto_TIA",
+    "Foto_SIM",
+    "Foto_MCU",
+    "Foto_DTAG",
+    "Foto_KET",
+    "Foto_SIO"
+  ];
 
-// ==========================================
-// FUNGSI CRUD KARYAWAN
-// ==========================================
-function getDataKaryawan() {
-  const sheet = getSpreadsheet().getSheetByName('Data Karyawan');
-  if (!sheet) return JSON.stringify([]);
+  var lastCol = sheet.getLastColumn();
+  var existingHeaders = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+  
+  var kolomDitambahkan = [];
 
-  const lastRow = sheet.getLastRow();
-  if (lastRow <= 1) return JSON.stringify([]);
-
-  const data = sheet.getRange(1, 1, lastRow, 17).getValues();
-  const headers = data[0];
-  const result = [];
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    if (!row[1]) continue; // Skip jika NRP kosong
-
-    let obj = {};
-    for (let j = 0; j < headers.length; j++) {
-      let val = row[j];
-      if (val instanceof Date) {
-        const y = val.getFullYear();
-        const m = String(val.getMonth() + 1).padStart(2, '0');
-        const d = String(val.getDate()).padStart(2, '0');
-        val = `${y}-${m}-${d}`;
-      }
-      obj[headers[j]] = val;
-    }
-    result.push(obj);
-  }
-  return JSON.stringify(result);
-}
-
-function saveKaryawan(formData) {
-  try {
-    const sheet = getSpreadsheet().getSheetByName('Data Karyawan');
-    const data = sheet.getDataRange().getValues();
-    const id = formData.ID || Utilities.getUuid();
-
-    const rowData = [
-      id, formData.NRP || "", formData.Nama || "", formData.Perusahaan || "", formData.Jabatan || "", formData.TglLahir || "",
-      formData.ExpSIMPER_BIB || "", formData.ExpSIMPER_TIA || "", formData.ExpSIM_B2 || "", formData.TglMCU || "", formData.ExpMCU || "",
-      formData.TglLOTOTO || "", formData.ExpDangerTag || "", formData.TglAwareness || "", formData.ExpKetinggian || "", formData.TglSIO || "", formData.ExpSIO || ""
-    ];
-
-    let rowIndex = -1;
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] == formData.ID) { rowIndex = i + 1; break; }
-    }
-
-    if (rowIndex > -1) {
-      sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
-      return { success: true, message: "Data berhasil diperbarui!" };
-    } else {
-      sheet.appendRow(rowData);
-      return { success: true, message: "Data baru berhasil ditambahkan!" };
-    }
-  } catch (err) { return { success: false, error: err.message }; }
-}
-
-function deleteKaryawan(id) {
-  try {
-    const sheet = getSpreadsheet().getSheetByName('Data Karyawan');
-    const data = sheet.getRange(1, 1, sheet.getLastRow(), 1).getValues();
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] == id) {
-        sheet.deleteRow(i + 1);
-        return { success: true, message: "Data berhasil dihapus!" };
-      }
-    }
-    return { success: false, message: "ID tidak ditemukan." };
-  } catch (err) { return { success: false, message: err.message }; }
-}
-
-function importKaryawanBulk(jsonData) {
-  try {
-    const sheet = getSpreadsheet().getSheetByName('Data Karyawan');
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0];
-
-    let updatedCount = 0; let newCount = 0;
-
-    jsonData.forEach(item => {
-      if (!item.NRP) return;
-      const nrpString = String(item.NRP).trim();
-      let rowIndex = -1;
-
-      for (let i = 1; i < data.length; i++) { if (String(data[i][1]).trim() === nrpString) { rowIndex = i + 1; break; } }
-
-      let rowData = new Array(headers.length).fill("");
-      if (rowIndex > -1) { rowData = data[rowIndex - 1]; } else { rowData[0] = Utilities.getUuid(); }
-
-      headers.forEach((header, index) => {
-        if (index === 0) return;
-        if (item[header] !== undefined) { rowData[index] = item[header]; }
-      });
-
-      if (rowIndex > -1) {
-        sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
-        updatedCount++;
-      } else {
-        sheet.appendRow(rowData);
-        data.push(rowData);
-        newCount++;
-      }
+  kolomBaru.forEach(function(namaKolom) {
+    // Cek apakah header kolom sudah ada (tidak sensitif huruf besar/kecil)
+    var sudahAda = existingHeaders.some(function(header) {
+      return String(header).trim().toLowerCase() === namaKolom.toLowerCase();
     });
 
-    return { success: true, message: `Import Selesai! ${newCount} Data Baru, ${updatedCount} Data Diperbarui.` };
-  } catch (err) { return { success: false, error: err.message }; }
+    if (!sudahAda) {
+      lastCol++;
+      sheet.getRange(1, lastCol)
+        .setValue(namaKolom)
+        .setFontWeight("bold")
+        .setBackground("#f3f4f6")
+        .setHorizontalAlignment("center");
+      existingHeaders.push(namaKolom);
+      kolomDitambahkan.push(namaKolom);
+    }
+  });
+
+  SpreadsheetApp.flush();
+  Logger.log("Selesai! Kolom yang berhasil ditambahkan: " + kolomDitambahkan.join(", "));
 }
 
-// ==========================================
-// FUNGSI CRUD UNIT
-// ==========================================
-function getDataUnit() {
-  const sheet = getSpreadsheet().getSheetByName('Data Unit');
-  if (!sheet) return JSON.stringify([]);
+// Inisialisasi otomatis jika dipanggil lewat request web
+function setupSheets() {
+  tambahSemuaKolomBaru();
 
-  const lastRow = sheet.getLastRow();
-  const lastCol = sheet.getLastColumn();
-  if (lastRow <= 1) return JSON.stringify([]);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var headersUnit = ["ID", "NoUnit", "Model", "ExpKom_BIB", "ExpKom_TIA", "ExpKom_TMA"];
+  var sheetUnit = ss.getSheetByName('Data Unit');
+  if (!sheetUnit) {
+    sheetUnit = ss.insertSheet('Data Unit');
+    sheetUnit.appendRow(headersUnit);
+    sheetUnit.getRange(1, 1, 1, headersUnit.length).setFontWeight("bold").setBackground("#f3f4f6");
+  }
+}
 
-  const data = sheet.getRange(1, 1, lastRow, lastCol).getValues();
-  const headers = data[0];
-  const result = [];
+// =========================================================================
+// ROUTING GET (TARIK DATA DARI SHEET KE FRONTEND)
+// =========================================================================
+function doGet(e) {
+  setupSheets();
+  var action = e && e.parameter ? e.parameter.action : '';
+  
+  if (action === 'getKaryawan') {
+    return responseJSON(getData('Data Karyawan'));
+  } else if (action === 'getUnit') {
+    return responseJSON(getData('Data Unit'));
+  }
+  
+  return responseJSON({ error: 'Action GET tidak valid' });
+}
 
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    if (!row[1]) continue;
-    let obj = {};
-    for (let j = 0; j < headers.length; j++) {
-      let val = row[j];
-      if (val instanceof Date) {
-        const y = val.getFullYear();
-        const m = String(val.getMonth() + 1).padStart(2, '0');
-        const d = String(val.getDate()).padStart(2, '0');
-        val = `${y}-${m}-${d}`;
+// =========================================================================
+// ROUTING POST (SIMPAN, EDIT, HAPUS, IMPORT DATA)
+// =========================================================================
+function doPost(e) {
+  try {
+    var payload = JSON.parse(e.postData.contents);
+    var action = payload.action;
+
+    setupSheets();
+
+    if (action === 'saveKaryawan') {
+      return responseJSON(saveData('Data Karyawan', payload.data, 'NRP'));
+    } 
+    else if (action === 'deleteKaryawan') {
+      return responseJSON(deleteData('Data Karyawan', payload.id));
+    } 
+    else if (action === 'saveUnit') {
+      return responseJSON(saveData('Data Unit', payload.data, 'NoUnit'));
+    } 
+    else if (action === 'deleteUnit') {
+      return responseJSON(deleteData('Data Unit', payload.id));
+    } 
+    else if (action === 'importKaryawanBulk') {
+      return responseJSON(importBulk('Data Karyawan', payload.data, 'NRP'));
+    }
+
+    return responseJSON({ error: 'Action POST tidak valid' });
+
+  } catch (err) {
+    return responseJSON({ error: err.toString() });
+  }
+}
+
+// =========================================================================
+// FUNGSI PENDUKUNG (HELPERS)
+// =========================================================================
+
+function responseJSON(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function generateId() {
+  return 'id_' + new Date().getTime() + '_' + Math.floor(Math.random() * 1000);
+}
+
+// MENGAMBIL DATA DARI SHEET (GET)
+function getData(sheetName) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName) || ss.getSheets()[0];
+  if (!sheet) return [];
+  
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+
+  var headers = data[0];
+  var result = [];
+  
+  for (var i = 1; i < data.length; i++) {
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      var val = data[i][j];
+      
+      if (Object.prototype.toString.call(val) === '[object Date]') {
+        var ms = val.getTime() - (val.getTimezoneOffset() * 60000);
+        val = new Date(ms).toISOString().split('T')[0];
       }
+      
       obj[headers[j]] = val;
     }
     result.push(obj);
   }
-  return JSON.stringify(result);
+  
+  return result.reverse();
 }
 
-function saveUnit(formData) {
-  try {
-    const sheet = getSpreadsheet().getSheetByName('Data Unit');
-    const data = sheet.getDataRange().getValues();
-    const id = formData.ID || Utilities.getUuid();
-    const noUnit = (formData.NoUnit || "").trim().toUpperCase();
+// MENYIMPAN ATAU MENGEDIT DATA (POST) -> ANTI DUPLIKAT
+function saveData(sheetName, dataObj, primaryKey) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName) || ss.getSheets()[0];
+  
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
 
-    const rowData = [id, noUnit, formData.Model || "", formData.ExpKom_BIB || "", formData.ExpKom_TIA || "", formData.ExpKom_TMA || ""];
+  if (!dataObj.ID || String(dataObj.ID).indexOf("temp_") === 0) {
+    dataObj.ID = generateId();
+  }
 
-    let rowIndex = -1;
-    for (let i = 1; i < data.length; i++) { if (data[i][0] == formData.ID || data[i][1] == noUnit) { rowIndex = i + 1; break; } }
+  // Set default akun & password jika belum disetel
+  if (sheetName === 'Data Karyawan' || sheet.getName() === ss.getSheets()[0].getName()) {
+    if (!dataObj.Password) dataObj.Password = String(dataObj.NRP || '').trim();
+    if (!dataObj.StatusAkun) dataObj.StatusAkun = 'Aktif';
+  }
 
-    if (rowIndex > -1) { sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]); return { success: true, message: "Data Unit diperbarui!" }; }
-    else { sheet.appendRow(rowData); return { success: true, message: "Data Unit baru ditambahkan!" }; }
-  } catch (err) { return { success: false, error: err.message }; }
+  var rowIndex = -1;
+  var idIndex = headers.indexOf('ID');
+  var pkIndex = headers.indexOf(primaryKey);
+
+  for (var i = 1; i < data.length; i++) {
+    var rowId = String(data[i][idIndex]);
+    var rowPk = String(data[i][pkIndex]);
+
+    if ((dataObj.ID && rowId === String(dataObj.ID)) || 
+        (dataObj[primaryKey] && rowPk.toUpperCase() === String(dataObj[primaryKey]).toUpperCase())) {
+      rowIndex = i + 1;
+      dataObj.ID = rowId;
+      
+      for (var h = 0; h < headers.length; h++) {
+        var key = headers[h];
+        if (dataObj[key] === undefined) {
+          dataObj[key] = data[i][h];
+        }
+      }
+      break;
+    }
+  }
+
+  var rowData = [];
+  for (var h = 0; h < headers.length; h++) {
+    var val = dataObj[headers[h]];
+    rowData.push(val !== undefined ? val : "");
+  }
+
+  if (rowIndex > -1) {
+    sheet.getRange(rowIndex, 1, 1, headers.length).setValues([rowData]);
+  } else {
+    sheet.appendRow(rowData);
+  }
+
+  return { success: true, id: dataObj.ID };
 }
 
-function deleteUnit(id) {
-  try {
-    const sheet = getSpreadsheet().getSheetByName('Data Unit');
-    const data = sheet.getRange(1, 1, sheet.getLastRow(), 1).getValues();
-    for (let i = 1; i < data.length; i++) { if (data[i][0] == id) { sheet.deleteRow(i + 1); return { success: true, message: "Unit dihapus!" }; } }
-    return { success: false, message: "ID Unit tidak ditemukan." };
-  } catch (err) { return { success: false, message: err.message }; }
+// MENGHAPUS DATA (POST)
+function deleteData(sheetName, id) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName) || ss.getSheets()[0];
+  if (!sheet) return { success: false, error: 'Sheet tidak ditemukan' };
+
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var idIndex = headers.indexOf('ID');
+
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][idIndex]) === String(id)) {
+      sheet.deleteRow(i + 1);
+      return { success: true };
+    }
+  }
+  return { success: false, error: 'ID data tidak ditemukan' };
+}
+
+// IMPORT MASSAL EXCEL (POST)
+function importBulk(sheetName, dataArray, primaryKey) {
+  if (!dataArray || dataArray.length === 0) return { success: true };
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName) || ss.getSheets()[0];
+  
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  var idIndex = headers.indexOf('ID');
+  var pkIndex = headers.indexOf(primaryKey);
+
+  var existingRows = {}; 
+  for(var i = 1; i < data.length; i++) {
+    var pkVal = String(data[i][pkIndex]).toUpperCase();
+    if(pkVal) existingRows[pkVal] = i + 1;
+  }
+
+  dataArray.forEach(function(obj) {
+    var pkVal = String(obj[primaryKey]).toUpperCase();
+    if (!pkVal) return;
+
+    var rowIndex = existingRows[pkVal];
+
+    if (!obj.ID || String(obj.ID).indexOf("temp_") === 0) {
+      obj.ID = generateId();
+    }
+    if (!obj.Password) obj.Password = pkVal;
+    if (!obj.StatusAkun) obj.StatusAkun = 'Aktif';
+
+    var rowData = headers.map(function(h) {
+      return obj[h] !== undefined ? obj[h] : "";
+    });
+
+    if (rowIndex) {
+      rowData[idIndex] = sheet.getRange(rowIndex, idIndex + 1).getValue();
+      sheet.getRange(rowIndex, 1, 1, headers.length).setValues([rowData]);
+    } else {
+      sheet.appendRow(rowData);
+      existingRows[pkVal] = sheet.getLastRow();
+    }
+  });
+
+  return { success: true, count: dataArray.length };
 }
