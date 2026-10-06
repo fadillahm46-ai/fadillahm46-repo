@@ -53,7 +53,6 @@
         .detail-modal-active { display: flex !important; animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 
-        /* Login Decorative Background */
         .login-bg {
             background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
             position: relative;
@@ -83,9 +82,7 @@
 </head>
 <body class="text-slate-800 h-screen flex flex-col overflow-hidden bg-slate-100">
 
-    <!-- ============================================================= -->
     <!-- VIEW: LOGIN PAGE -->
-    <!-- ============================================================= -->
     <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-4 login-bg transition-opacity duration-300">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 sm:p-9 relative z-10">
             <div class="mb-8">
@@ -126,9 +123,7 @@
         </div>
     </div>
 
-    <!-- ============================================================= -->
     <!-- VIEW: ADMIN DASHBOARD WRAPPER -->
-    <!-- ============================================================= -->
     <div id="admin-wrapper" class="hidden flex-1 h-screen flex overflow-hidden">
         <input type="file" id="fileImport" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleImport(event)">
         <div id="sidebarBackdrop" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden backdrop-blur-sm transition-opacity opacity-0"></div>
@@ -160,13 +155,13 @@
                 </a>
             </nav>
             
-            <!-- SIDEBAR FOOTER (LOGO & LOGOUT DI BAWAH KIRI UJUNG) -->
+            <!-- SIDEBAR FOOTER (LOGO & LOGOUT) -->
             <div class="p-4 border-t border-slate-800 flex flex-col gap-3 shrink-0 bg-slate-950/60">
                 <div class="flex items-center gap-3">
                     <img src="https://drive.google.com/uc?export=view&id=1FEQKU7Tf9Wkt_NNBXTJhv_v_0PKU6R8V" alt="Logo" class="h-8 w-auto object-contain opacity-90" onerror="this.style.display='none'">
                     <div class="text-[11px] text-slate-400 leading-tight">
                         <div class="font-bold text-white">Administrator</div>
-                        <span class="text-[10px] text-blue-400">SE Monitoring v2.0</span>
+                        <span class="text-[10px] text-blue-400">SE Monitoring v2.7</span>
                     </div>
                 </div>
                 <button onclick="confirmLogout()" class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-rose-500/15 text-rose-300 hover:bg-rose-600 hover:text-white rounded-lg transition-all text-xs font-semibold border border-rose-500/30 cursor-pointer">
@@ -219,7 +214,7 @@
                         </div>
                     </div>
 
-                    <!-- RINGKASAN PERINGATAN KARYAWAN -->
+                    <!-- RINCIAN PERINGATAN KARYAWAN -->
                     <div>
                         <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fa-solid fa-bell text-amber-500 mr-1"></i> Rincian Peringatan Dokumen</h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -372,7 +367,6 @@
                             </div>
                         </div>
                         
-                        <!-- TABEL DENGAN HEADER SORTIR LENGKAP -->
                         <div class="overflow-auto flex-1 custom-scrollbar border border-slate-200 rounded-lg relative" style="max-height: calc(100vh - 65px);">
                             <table class="w-full text-left text-sm whitespace-nowrap min-w-max relative">
                                 <thead class="bg-slate-50 text-slate-600 sticky top-0 z-20 shadow-sm text-xs uppercase">
@@ -396,7 +390,7 @@
                         </div>
                         <div class="mt-1 text-[11px] text-slate-500 flex justify-between items-center shrink-0">
                             <span>Total Karyawan Ditampilkan: <b id="totalDataCount" class="text-slate-800">0</b></span>
-                            <span class="text-[10px] text-slate-400 italic"><i class="fa-solid fa-circle-info mr-1"></i>Klik tanggal atau tanda mata untuk melihat / upload foto</span>
+                            <span class="text-[10px] text-slate-400 italic"><i class="fa-solid fa-circle-info mr-1"></i>Klik tanggal atau tanda mata untuk melihat / upload foto ke Google Drive</span>
                         </div>
                     </div>
                 </div>
@@ -441,7 +435,7 @@
                     </div>
                 </div>
 
-                <!-- VIEW: MANAJEMEN AKUN (DIBAWAH DATA UNIT) -->
+                <!-- VIEW: MANAJEMEN AKUN -->
                 <div id="account-view" class="hidden flex-1 flex flex-col h-full pb-0">
                     <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3 shrink-0">
@@ -475,7 +469,7 @@
                         </div>
                         <div class="mt-2 text-[11px] text-slate-500 flex justify-between items-center shrink-0">
                             <span>Total Akun Terdaftar: <b id="totalAccountCount" class="text-slate-800">0</b></span>
-                            <span class="text-slate-400 italic text-[10px]">*Menghapus akun akan otomatis menghapus data karyawan dari sistem (sinkron dua arah).</span>
+                            <span class="text-slate-400 italic text-[10px]">*Sinkronisasi otomatis dua arah dengan spreadsheet.</span>
                         </div>
                     </div>
                 </div>
@@ -484,14 +478,11 @@
         </main>
     </div>
 
-    <!-- ============================================================= -->
     <!-- VIEW: MANPOWER PORTAL (KHUSUS LOGIN KARYAWAN) -->
-    <!-- ============================================================= -->
     <div id="manpower-wrapper" class="hidden flex-1 h-screen flex flex-col overflow-hidden bg-slate-100">
-        <!-- Body Manpower: Kartu Karyawan Mandiri -->
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center justify-center custom-scrollbar">
             <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col my-auto">
-                <!-- Header Kartu -->
+                <!-- Header Kartu Manpower -->
                 <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-5 text-white flex items-center gap-4 relative">
                     <div class="w-16 h-16 rounded-full bg-blue-500/20 border-2 border-blue-400 flex items-center justify-center text-blue-400 text-3xl shrink-0">
                         <i class="fa-solid fa-id-badge"></i>
@@ -504,9 +495,8 @@
                     </div>
                 </div>
 
-                <!-- Dokumen & Expiry List (Disesuaikan dengan Jabatan Karyawan) -->
+                <!-- Dokumen & Expiry List (Disesuaikan Jabatan) -->
                 <div class="p-4 sm:p-5 space-y-4 bg-slate-50 flex-1">
-                    <!-- Mine Permit Section -->
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm" id="mp_section_Permit">
                         <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                             <i class="fa-solid fa-id-card text-blue-500"></i> Mine Permit & Lisensi
@@ -527,7 +517,6 @@
                         </div>
                     </div>
 
-                    <!-- Kesehatan (MCU) Section -->
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm" id="mp_section_MCU">
                         <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                             <i class="fa-solid fa-notes-medical text-emerald-500"></i> Kesehatan (MCU)
@@ -544,7 +533,6 @@
                         </div>
                     </div>
 
-                    <!-- K3 & Keselamatan Section (Disembunyikan jika Administrasi) -->
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm" id="mp_section_K3">
                         <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                             <i class="fa-solid fa-helmet-safety text-amber-500"></i> K3 & Keselamatan
@@ -566,7 +554,7 @@
                     </div>
                 </div>
 
-                <!-- Footer Kartu: Tombol Aksi & Keluar Akun Di Bawah Edit Data Pribadi -->
+                <!-- Footer Kartu: Tombol Aksi & Keluar Akun Di Bawah Edit Pribadi -->
                 <div class="p-4 bg-white border-t border-slate-200 flex flex-col gap-2.5">
                     <div class="flex flex-col sm:flex-row gap-2">
                         <button type="button" onclick="downloadCardAsImageMP()" class="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
@@ -584,9 +572,7 @@
         </div>
     </div>
 
-    <!-- ============================================================= -->
-    <!-- MODAL FOTO DOKUMEN / SERTIFIKAT (PREVIEW & UPLOAD) -->
-    <!-- ============================================================= -->
+    <!-- MODAL FOTO DOKUMEN / SERTIFIKAT (GOOGLE DRIVE VIEWER & UPLOAD) -->
     <div id="photoModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] animate-[fadeIn_0.2s_ease-out]">
             <div class="px-5 py-3.5 bg-slate-900 text-white flex justify-between items-center">
@@ -605,8 +591,8 @@
                     <div id="photoModalPlaceholder" class="text-center p-6 text-slate-500">
                         <i class="fa-regular fa-image text-5xl mb-2 text-slate-400"></i>
                         <p class="text-xs font-bold text-slate-700">Foto Belum Diunggah</p>
-                        <p class="text-[11px] text-slate-400 mt-1">Belum ada foto/sertifikat yang tersimpan untuk dokumen ini.</p>
-                        <p class="text-[10px] text-blue-600 font-semibold mt-2">Klik tombol "Ganti / Unggah Foto" di bawah untuk menambahkan.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Belum ada foto/sertifikat yang tersimpan di Google Drive untuk dokumen ini.</p>
+                        <p class="text-[10px] text-blue-600 font-semibold mt-2">Klik tombol "Ganti / Unggah Foto" di bawah untuk mengunggah.</p>
                     </div>
                 </div>
 
@@ -616,7 +602,7 @@
             <div class="p-3.5 bg-white border-t border-slate-200 flex justify-between items-center gap-2">
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="closePhotoModal()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs rounded-lg transition-colors cursor-pointer">Tutup</button>
-                    <a id="photoModalDriveLink" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-2.5 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold text-xs rounded-lg border border-blue-200 transition-colors items-center gap-1.5" title="Buka foto resolusi penuh di Google Drive">
+                    <a id="photoModalDriveLink" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-2.5 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold text-xs rounded-lg border border-blue-200 transition-colors items-center gap-1.5" title="Buka foto di Google Drive">
                         <i class="fa-brands fa-google-drive"></i> Buka Asli
                     </a>
                 </div>
@@ -627,9 +613,7 @@
         </div>
     </div>
 
-    <!-- ============================================================= -->
     <!-- MODAL DETAIL KARTU KARYAWAN (ADMIN) -->
-    <!-- ============================================================= -->
     <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all flex flex-col overflow-hidden max-h-[90vh]">
             <div id="captureArea" class="flex flex-col bg-white w-full">
@@ -711,9 +695,7 @@
         </div>
     </div>
 
-    <!-- ============================================================= -->
     <!-- MODAL FORM TAMBAH/EDIT DATA KARYAWAN (ADMIN) -->
-    <!-- ============================================================= -->
     <div id="formModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl transform transition-all flex flex-col max-h-[90vh]">
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl shrink-0">
@@ -732,7 +714,6 @@
                 <form id="karyawanForm" onsubmit="handleFormSubmit(event)">
                     <input type="hidden" id="form_ID" name="ID">
                     
-                    <!-- TAB: BIODATA -->
                     <div id="section-biodata" class="form-section grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-1">
                             <label class="text-xs font-semibold text-slate-600">NRP <span class="text-rose-500">*</span></label>
@@ -783,7 +764,6 @@
                         </div>
                     </div>
 
-                    <!-- TAB: SIMPER -->
                     <div id="section-simper" class="form-section hidden grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-3">
                             <h4 class="font-semibold text-blue-800 text-xs border-b border-blue-200 pb-1.5"><i class="fa-solid fa-id-card"></i> Mine Permit BIB</h4>
@@ -808,7 +788,6 @@
                         </div>
                     </div>
 
-                    <!-- TAB: MCU -->
                     <div id="section-mcu" class="form-section hidden grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-3 md:col-span-2">
                             <h4 class="font-semibold text-emerald-800 text-xs border-b border-emerald-200 pb-1.5"><i class="fa-solid fa-notes-medical"></i> Medical Check Up (MCU)</h4>
@@ -825,7 +804,6 @@
                         </div>
                     </div>
 
-                    <!-- TAB: K3 -->
                     <div id="section-k3" class="form-section hidden grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-3">
                             <h4 class="font-semibold text-rose-800 text-xs border-b border-rose-200 pb-1.5"><i class="fa-solid fa-lock"></i> LOTOTO & Danger Tag</h4>
@@ -875,9 +853,7 @@
         </div>
     </div>
 
-    <!-- ============================================================= -->
     <!-- MODAL FORM UNIT (ADMIN) -->
-    <!-- ============================================================= -->
     <div id="unitFormModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all flex flex-col">
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl shrink-0">
@@ -922,7 +898,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT DATA PRIBADI (KHUSUS MANPOWER DENGAN GANTI PASSWORD) -->
+    <!-- MODAL EDIT DATA PRIBADI (KHUSUS MANPOWER) -->
     <div id="editPribadiModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-5 py-3.5 bg-slate-900 text-white flex justify-between items-center">
@@ -956,7 +932,7 @@
                         <h4 class="font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-camera text-blue-500"></i> Unggah / Ganti Foto Dokumen</h4>
                         <p class="text-[10px] text-slate-500 mb-3">Pilih dokumen yang ingin Anda perbarui fotonya:</p>
                         <div class="grid grid-cols-2 gap-2" id="mpDocPhotoButtons">
-                            <!-- Tombol upload foto per dokumen dinamis sesuai jabatan -->
+                            <!-- Tombol upload per dokumen dinamis sesuai jabatan -->
                         </div>
                     </div>
                 </form>
@@ -969,16 +945,12 @@
     </div>
 
     <script>
-        // ==========================================
         // KONFIGURASI API BACKEND GOOGLE APPS SCRIPT
-        // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbzmQKl0Uustb2JxfzWkh1We7_IriUyindQHSxHVXSgdVRUtRq3EefsnMgZpo_7EmokY/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxWoiTBBsXIOnITuTX8EpHEVumfB-Z9qA-E5FgzpW9xreRWf0ymAHe6I0113ooAd5o3/exec";
 
-        // Registrasi Plugin DataLabels Global
         Chart.register(ChartDataLabels);
 
-        // State Global Aplikasi & Akun
-        let currentUser = null; // { role: 'admin'|'manpower', data: rowObj }
+        let currentUser = null;
         let karyawanData = [];
         let filteredData = [];
         let filteredAccountData = [];
@@ -987,7 +959,6 @@
         let currentSort = { col: '', asc: true };
         let currentDetailData = null; 
 
-        // State Khusus Unit
         let unitData = [];
         let filteredUnitData = [];
         let currentUnitSort = { col: '', asc: true };
@@ -997,7 +968,6 @@
         let currentCriticalLists = {};
         let currentUnitCriticalLists = {};
 
-        // State Pratinjau Foto Dokumen
         let activePhotoDoc = { rowId: '', rowObj: null, docKey: '', docTitle: '' };
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1005,20 +975,16 @@
             checkSession();
             fetchAllDataParalel();
 
-            // PWA Service Worker Registration
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js')
-                        .catch(() => {});
+                    navigator.serviceWorker.register('/sw.js').catch(() => {});
                 });
             }
 
-            // Sinkronisasi otomatis berkala setiap 30 detik
             setInterval(() => {
                 fetchAllDataParalel(true); 
             }, 30000); 
 
-            // Otomatisasi Exp MCU = Tanggal MCU + 9 Bulan
             const elTglMCU = document.getElementById('form_TglMCU');
             if(elTglMCU) {
                 elTglMCU.addEventListener('change', function() {
@@ -1031,9 +997,6 @@
             }
         });
 
-        /**
-         * Ambang batas evaluasi masa berlaku dokumen
-         */
         function getDocThresholds(docName) {
             const name = String(docName || '').trim().toUpperCase();
             if (name.includes('SIM') || name.includes('SIO')) {
@@ -1083,7 +1046,6 @@
                 else if (item.val === 2) sisaHariText = `WARNING (-${item.daysLeft} Hr)`;
                 else sisaHariText = `-${item.daysLeft} Hari`;
 
-                // Badge tanggal dapat diklik untuk membuka foto
                 html += `<div onclick="openPhotoModalById('${rowObj.ID}', '${docKey}', '${item.label}')" class="group/badge cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all flex flex-col items-center justify-center px-2 py-1.5 rounded-md text-[10px] font-bold border ${item.color} shadow-sm w-full leading-tight text-center" title="Klik untuk lihat foto / sertifikat">
                     <span class="text-[11px] mb-[2px] flex items-center justify-center gap-1">${item.date} <i class="fa-solid fa-camera opacity-0 group-hover/badge:opacity-100 text-[9px]"></i></span>
                     <span class="text-[9px] font-extrabold opacity-95">(${sisaHariText})</span>
@@ -1145,7 +1107,6 @@
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
 
-            // Login Admin
             if (username.toLowerCase() === 'admin' && password === 'admin123') {
                 currentUser = { role: 'admin', data: { Nama: 'Administrator', NRP: 'admin', ID: 'admin_root' } };
                 localStorage.setItem('se_user', JSON.stringify(currentUser));
@@ -1154,7 +1115,6 @@
                 return;
             }
 
-            // Login Manpower (Berdasarkan NRP atau Nama)
             const employee = karyawanData.find(k => 
                 (String(k.NRP || '').trim().toUpperCase() === username.toUpperCase() ||
                  String(k.Nama || '').trim().toUpperCase() === username.toUpperCase())
@@ -1165,14 +1125,12 @@
                 return;
             }
 
-            // Validasi Status Akun
             const statusAkun = employee.StatusAkun !== undefined ? employee.StatusAkun : 'Aktif';
             if (statusAkun === 'Non-Aktif') {
                 Swal.fire('Akun Dinonaktifkan', 'Akun Anda sedang dinonaktifkan oleh Admin. Silakan hubungi bagian SE/K3.', 'warning');
                 return;
             }
 
-            // Validasi Password (Default password adalah NRP jika belum disetel)
             const validPass = employee.Password ? String(employee.Password).trim() : String(employee.NRP).trim();
             if (password !== validPass) {
                 Swal.fire('Password Salah', 'Password yang Anda masukkan tidak sesuai!', 'error');
@@ -1239,7 +1197,6 @@
         }
 
         function renderManpowerPortal(row) {
-            // Update data terbaru dari memori
             const latest = karyawanData.find(k => String(k.ID) === String(row.ID)) || row;
             currentUser.data = latest;
             localStorage.setItem('se_user', JSON.stringify(currentUser));
@@ -1264,7 +1221,6 @@
                 else if (status.val === 2) badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
                 else badgeClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
 
-                // Logika khusus tautan pengajuan / info admin
                 let actionNoticeHtml = '';
                 if (status.val === 0 || status.val === 1 || status.val === 2) {
                     if (docKey === 'BIB') {
@@ -1313,7 +1269,6 @@
             renderDocRow('mp_row_KET', 'Ketinggian', latest.ExpKetinggian, 'KET');
             renderDocRow('mp_row_SIO', 'SIO', latest.ExpSIO, 'SIO');
 
-            // Penyesuaian dokumen sesuai jabatan (Administrasi hanya MP BIB & MCU)
             const jbt = latest.Jabatan;
             const rowTia = document.getElementById('mp_container_TIA');
             if (rowTia) rowTia.style.display = isDocRelevant(jbt, 'MP_TIA') ? 'flex' : 'none';
@@ -1334,7 +1289,6 @@
             const showK3 = isDocRelevant(jbt, 'DANGER_TAG') || isDocRelevant(jbt, 'KETINGGIAN') || isDocRelevant(jbt, 'SIO');
             if (secK3) secK3.style.display = showK3 ? 'block' : 'none';
 
-            // Tanggal Terakhir MCU
             const elTglMcu = document.getElementById('mp_row_TglMCU');
             if (latest.TglMCU) {
                 const parts = latest.TglMCU.split('T')[0].split('-');
@@ -1405,7 +1359,6 @@
                 if (eyeIcon) eyeIcon.className = 'fa-regular fa-eye';
             }
 
-            // Generate tombol ganti foto yang hanya relevan dengan jabatannya
             const allDocs = [
                 { key: 'BIB', label: 'Mine Permit BIB', rel: true },
                 { key: 'TIA', label: 'Mine Permit TIA', rel: isDocRelevant(data.Jabatan, 'MP_TIA') },
@@ -1567,7 +1520,7 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    const maxDim = 1280;
+                    const maxDim = 1200;
                     let w = img.width;
                     let h = img.height;
                     if (w > maxDim || h > maxDim) {
@@ -1584,7 +1537,7 @@
                     canvas.height = h;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, w, h);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
                     callback(dataUrl);
                 };
                 img.onerror = function() {
@@ -1614,14 +1567,17 @@
 
         async function uploadPhotoToDrive(base64Data) {
             const { rowId, rowObj, docKey, docTitle } = activePhotoDoc;
-            if (!rowObj || !docKey) {
-                Swal.fire('Gagal', 'Data karyawan atau dokumen tidak ditemukan.', 'error');
+            if (!docKey) {
+                Swal.fire('Gagal', 'Dokumen tidak dipilih.', 'error');
                 return;
             }
 
+            const currentId = rowId || (rowObj ? rowObj.ID : '') || (currentUser && currentUser.data ? currentUser.data.ID : '');
+            const currentNrp = (rowObj ? rowObj.NRP : '') || (currentUser && currentUser.data ? currentUser.data.NRP : '');
+
             Swal.fire({
                 title: 'Mengunggah ke Google Drive...',
-                html: '<div class="text-xs text-slate-500">Menyimpan file ke folder Drive & memperbarui link di Spreadsheet...</div>',
+                html: '<div class="text-xs text-slate-500">Menyimpan file ke Google Drive & memperbarui tautan di Spreadsheet...</div>',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading()
             });
@@ -1631,36 +1587,45 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
-                        action: 'uploadDocPhoto',
-                        id: rowObj.ID,
-                        nrp: rowObj.NRP,
+                        action: 'uploadPhoto',
+                        id: currentId,
+                        nrp: currentNrp,
                         docKey: docKey,
                         docTitle: docTitle,
                         base64: base64Data
                     }),
-                    timeout: 45000
+                    timeout: 60000
                 });
 
                 const resText = await response.text();
                 let resJson = {};
-                try { resJson = JSON.parse(resText); } catch(ex) { resJson = { error: resText }; }
+                try {
+                    resJson = JSON.parse(resText);
+                } catch (ex) {
+                    if (resText.includes("<!DOCTYPE html>") || resText.includes("<html") || resText.includes("ppConfig")) {
+                        throw new Error("Akses Web App Google diblokir / meminta login. Pastikan Web App di-Deploy dengan: 'Jalankan sebagai: Saya' dan 'Siapa yang memiliki akses: Siapa saja (Anyone)'.");
+                    } else {
+                        throw new Error(resText.substring(0, 150) || 'Gagal memproses data server.');
+                    }
+                }
 
-                if (!resJson.success) {
-                    throw new Error(resJson.error || 'Gagal menyimpan ke Google Drive.');
+                const isOk = resJson && (resJson.success === true || resJson.status === 'success' || Boolean(resJson.url));
+                if (!isOk) {
+                    const errorDetail = resJson.error || resJson.message || (typeof resJson === 'object' ? JSON.stringify(resJson) : resText) || 'Gagal menyimpan ke Google Drive.';
+                    throw new Error(errorDetail);
                 }
 
                 const driveUrl = resJson.url;
                 const photoField = `Foto_${docKey}`;
 
-                // Perbarui daftar di memori & cache lokal
                 const targetList = [...karyawanData];
-                const idx = targetList.findIndex(k => String(k.ID) === String(rowObj.ID) || String(k.NRP) === String(rowObj.NRP));
+                const idx = targetList.findIndex(k => (currentId && String(k.ID) === String(currentId)) || (currentNrp && String(k.NRP) === String(currentNrp)));
                 if (idx > -1) {
                     targetList[idx][photoField] = driveUrl;
                     updateKaryawanCacheAndRender(targetList);
                 }
 
-                if (currentUser && currentUser.data && (String(currentUser.data.ID) === String(rowObj.ID) || String(currentUser.data.NRP) === String(rowObj.NRP))) {
+                if (currentUser && currentUser.data && ((currentId && String(currentUser.data.ID) === String(currentId)) || (currentNrp && String(currentUser.data.NRP) === String(currentNrp)))) {
                     currentUser.data[photoField] = driveUrl;
                     localStorage.setItem('se_user', JSON.stringify(currentUser));
                     if (currentUser.role === 'manpower') {
@@ -1668,7 +1633,6 @@
                     }
                 }
 
-                // Tampilkan foto di modal
                 const imgEl = document.getElementById('photoModalImg');
                 const placeholderEl = document.getElementById('photoModalPlaceholder');
                 const driveLinkEl = document.getElementById('photoModalDriveLink');
@@ -1684,8 +1648,8 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Tersimpan di Google Drive!',
-                    text: `Foto ${docTitle} berhasil diunggah ke Google Drive dan tautan disimpan ke Spreadsheet.`,
-                    timer: 2000,
+                    text: `Foto ${docTitle} berhasil diunggah ke Google Drive dan tautan tersimpan di Spreadsheet.`,
+                    timer: 2500,
                     showConfirmButton: false
                 });
 
@@ -1694,7 +1658,17 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Mengunggah',
-                    text: 'Kendala saat menyimpan foto ke Google Drive: ' + (err.message || 'Timeout / Jaringan lambat'),
+                    html: `<div class="text-xs text-slate-600 text-left space-y-2">
+                        <p><b>Penyebab / Pesan Server:</b> ${err.message || 'Koneksi timeout'}</p>
+                        <div class="p-2.5 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-800 space-y-1">
+                            <p class="font-bold">Langkah Pemecahan Masalah:</p>
+                            <ol class="list-decimal pl-4 space-y-0.5">
+                                <li>Pastikan di Apps Script Anda sudah memilih <b>ujiUploadFotoDrive</b> lalu klik ▶️ Jalankan (Run).</li>
+                                <li>Klik <b>Deploy > Kelola penerapan > Edit ✏️</b>.</li>
+                                <li>Pilih <b>Versi Baru</b>, dan pastikan akses: <b>Siapa saja (Anyone)</b>.</li>
+                            </ol>
+                        </div>
+                    </div>`,
                     confirmButtonColor: '#2563eb'
                 });
             }
@@ -2274,7 +2248,6 @@
             setHtmlSafe('detail_SIMPER_TIA', formatField('MP TIA', rowObj.ExpSIMPER_TIA, 'TIA'));
             setHtmlSafe('detail_SIM_B2', formatField('SIM B2', rowObj.ExpSIM_B2, 'SIM'));
             
-            // Tanggal Terakhir MCU
             let htmlTglMCU = '<span class="text-slate-400 text-xs italic font-medium">Belum Ada</span>';
             if(rowObj.TglMCU && rowObj.TglMCU.trim() !== '') {
                 const parts = rowObj.TglMCU.split('T')[0].split('-');
