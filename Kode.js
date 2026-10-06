@@ -1,68 +1,11 @@
-// =========================================================================
-// BACKEND GOOGLE APPS SCRIPT - SE DASHBOARD MONITORING & MANPOWER PORTAL
-// =========================================================================
+// =====================================================================
+// BACKEND GOOGLE APPS SCRIPT: SISTEM MONITORING SE & INTEGRASI DRIVE
+// ID Folder Drive: 1pA4e24uLetVNBhj0GmrlV0sS-PvPREC9
+// =====================================================================
 
-/**
- * Konfigurasi Spreadsheet ID (Opsional jika script terikat ke spreadsheet langsung)
- */
-var SPREADSHEET_ID = "";
+var FOLDER_ID = "1pA4e24uLetVNBhj0GmrlV0sS-PvPREC9";
 
-/**
- * FOLDER GOOGLE DRIVE PENYIMPANAN FOTO DOKUMEN & SERTIFIKAT
- */
-var DRIVE_FOLDER_ID = "1pA4e24uLetVNBhj0GmrlV0sS-PvPREC9";
-
-/**
- * Helper mendapatkan spreadsheet aktif secara aman
- */
-function getSpreadsheet() {
-  var ss = null;
-  try {
-    ss = SpreadsheetApp.getActiveSpreadsheet();
-    if (!ss) ss = SpreadsheetApp.getActive();
-  } catch (e) {}
-
-  if (!ss && typeof SPREADSHEET_ID !== 'undefined' && SPREADSHEET_ID.trim() !== "") {
-    try {
-      ss = SpreadsheetApp.openById(SPREADSHEET_ID.trim());
-    } catch (err) {}
-  }
-  return ss;
-}
-
-/**
- * Helper mencari Sheet Karyawan secara akurat dan tahan error
- */
-function getSheetKaryawan(ss) {
-  if (!ss) ss = getSpreadsheet();
-  if (!ss) {
-    throw new Error("Spreadsheet tidak ditemukan! Pastikan membuka Apps Script dari Spreadsheet (Ekstensi > Apps Script).");
-  }
-
-  var sheet = ss.getSheetByName('Data Karyawan');
-  if (sheet) return sheet;
-
-  // Cari lembar mana saja yang memiliki kolom 'NRP'
-  var sheets = ss.getSheets();
-  for (var s = 0; s < sheets.length; s++) {
-    if (sheets[s].getName() === 'Data Unit') continue;
-    var row1 = sheets[s].getRange(1, 1, 1, Math.min(sheets[s].getMaxColumns(), 30)).getDisplayValues()[0];
-    for (var c = 0; c < row1.length; c++) {
-      if (String(row1[c]).trim().toUpperCase() === 'NRP') {
-        sheets[s].setName('Data Karyawan');
-        return sheets[s];
-      }
-    }
-  }
-
-  sheets[0].setName('Data Karyawan');
-  return sheets[0];
-}
-
-/**
- * DAFTAR LENGKAP 27 HEADER KOLOM DATA KARYAWAN (A - AA)
- */
-var ALL_KARYAWAN_HEADERS = [
+var MASTER_HEADERS_KARYAWAN = [
   "ID", "NRP", "Nama", "Perusahaan", "Jabatan", "TglLahir",
   "ExpSIMPER_BIB", "ExpSIMPER_TIA", "ExpSIM_B2", "TglMCU", "ExpMCU",
   "TglLOTOTO", "ExpDangerTag", "TglAwareness", "ExpKetinggian", "TglSIO", "ExpSIO",
@@ -70,454 +13,350 @@ var ALL_KARYAWAN_HEADERS = [
   "Foto_BIB", "Foto_TIA", "Foto_SIM", "Foto_MCU", "Foto_DTAG", "Foto_KET", "Foto_SIO"
 ];
 
-/**
- * DAFTAR LENGKAP HEADER KOLOM DATA UNIT
- */
-var ALL_UNIT_HEADERS = [
+var MASTER_HEADERS_UNIT = [
   "ID", "NoUnit", "Model", "ExpKom_BIB", "ExpKom_TIA", "ExpKom_TMA"
 ];
 
-/**
- * FUNGSI UTAMA: SETUP DATABASE LENGKAP SATU KALI KLIK
- */
-function setupDatabaseLengkap() {
-  var ss = getSpreadsheet();
-  if (!ss) {
-    Logger.log("Gagal: Spreadsheet tidak ditemukan.");
-    return;
-  }
-
-  var sheetKaryawan = getSheetKaryawan(ss);
-  var maxCols = Math.max(sheetKaryawan.getMaxColumns(), 1);
-  var r1 = sheetKaryawan.getRange(1, 1, 1, maxCols).getDisplayValues()[0];
-  var hasNRP = r1.some(function(h) { return String(h).trim().toUpperCase() === "NRP"; });
-  var hasData = sheetKaryawan.getLastRow() > 1;
-
-  if (!hasNRP && !hasData) {
-    sheetKaryawan.clear();
-    if (sheetKaryawan.getMaxColumns() < ALL_KARYAWAN_HEADERS.length) {
-      sheetKaryawan.insertColumnsAfter(sheetKaryawan.getMaxColumns(), ALL_KARYAWAN_HEADERS.length - sheetKaryawan.getMaxColumns() + 2);
-    }
-    sheetKaryawan.getRange(1, 1, 1, ALL_KARYAWAN_HEADERS.length)
-      .setValues([ALL_KARYAWAN_HEADERS])
-      .setFontWeight("bold")
-      .setBackground("#f3f4f6")
-      .setHorizontalAlignment("center");
-    sheetKaryawan.setFrozenRows(1);
-  } else {
-    ensureHeadersExist(sheetKaryawan, ALL_KARYAWAN_HEADERS);
-  }
-
-  var sheetUnit = ss.getSheetByName('Data Unit');
-  if (!sheetUnit) {
-    sheetUnit = ss.insertSheet('Data Unit');
-    sheetUnit.getRange(1, 1, 1, ALL_UNIT_HEADERS.length)
-      .setValues([ALL_UNIT_HEADERS])
-      .setFontWeight("bold")
-      .setBackground("#f3f4f6")
-      .setHorizontalAlignment("center");
-    sheetUnit.setFrozenRows(1);
-  } else {
-    ensureHeadersExist(sheetUnit, ALL_UNIT_HEADERS);
-  }
-
-  // Cek akses folder Drive
+// FUNGSI UNTUK OTORISASI DRIVE DARI EDITOR (JALANKAN INI PERTAMA KALI)
+function ujiIzinDriveDanFolder() {
   try {
-    var testFolder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-    Logger.log("Folder Drive Terhubung: " + testFolder.getName());
-  } catch(errF) {
-    Logger.log("Peringatan Folder Drive: " + errF.toString());
-  }
-
-  SpreadsheetApp.flush();
-  Logger.log("Database siap & seluruh kolom tersusun rapi.");
-}
-
-function tambahSemuaKolomBaru() {
-  setupDatabaseLengkap();
-}
-
-function setupSheets() {
-  setupDatabaseLengkap();
-}
-
-function ensureHeadersExist(sheet, headersList) {
-  if (!sheet) return;
-  var maxCols = Math.max(sheet.getMaxColumns(), 1);
-  var r1 = sheet.getRange(1, 1, 1, maxCols).getDisplayValues()[0];
-  
-  var existingHeaders = [];
-  var lastColWithHeader = 0;
-  for (var c = 0; c < r1.length; c++) {
-    var hName = String(r1[c]).trim();
-    if (hName !== "") {
-      existingHeaders.push(hName.toLowerCase());
-      lastColWithHeader = c + 1;
-    }
-  }
-
-  var toAdd = [];
-  headersList.forEach(function(key) {
-    if (existingHeaders.indexOf(String(key).trim().toLowerCase()) === -1) {
-      toAdd.push(key);
-    }
-  });
-
-  if (toAdd.length > 0) {
-    var neededCols = lastColWithHeader + toAdd.length;
-    if (neededCols > sheet.getMaxColumns()) {
-      sheet.insertColumnsAfter(sheet.getMaxColumns(), neededCols - sheet.getMaxColumns() + 2);
-    }
-    for (var i = 0; i < toAdd.length; i++) {
-      var colIdx = lastColWithHeader + i + 1;
-      sheet.getRange(1, colIdx)
-        .setValue(toAdd[i])
-        .setFontWeight("bold")
-        .setBackground("#f3f4f6")
-        .setHorizontalAlignment("center");
-    }
-    SpreadsheetApp.flush();
-  }
-}
-
-// ROUTING GET
-function doGet(e) {
-  setupDatabaseLengkap();
-  var action = e && e.parameter ? e.parameter.action : '';
-  
-  if (action === 'getKaryawan') {
-    return responseJSON(getData('Data Karyawan'));
-  } else if (action === 'getUnit') {
-    return responseJSON(getData('Data Unit'));
-  }
-  
-  return responseJSON({ error: 'Action GET tidak valid' });
-}
-
-// ROUTING POST
-function doPost(e) {
-  try {
-    var payload = JSON.parse(e.postData.contents);
-    var action = payload.action;
-
-    setupDatabaseLengkap();
-
-    if (action === 'uploadDocPhoto') {
-      return responseJSON(handlePhotoUploadToDrive(payload));
-    }
-    else if (action === 'saveKaryawan') {
-      return responseJSON(saveData('Data Karyawan', payload.data, 'NRP'));
-    } 
-    else if (action === 'deleteKaryawan') {
-      return responseJSON(deleteData('Data Karyawan', payload.id));
-    } 
-    else if (action === 'saveUnit') {
-      return responseJSON(saveData('Data Unit', payload.data, 'NoUnit'));
-    } 
-    else if (action === 'deleteUnit') {
-      return responseJSON(deleteData('Data Unit', payload.id));
-    } 
-    else if (action === 'importKaryawanBulk') {
-      return responseJSON(importBulk('Data Karyawan', payload.data, 'NRP'));
-    }
-
-    return responseJSON({ error: 'Action POST tidak valid' });
-
-  } catch (err) {
-    return responseJSON({ error: err.toString() });
-  }
-}
-
-/**
- * UPLOAD FOTO LANGSUNG KE GOOGLE DRIVE & SIMPAN TAUTAN KE SHEET
- */
-function handlePhotoUploadToDrive(payload) {
-  try {
-    var ss = getSpreadsheet();
-    if (!ss) return { success: false, error: 'Spreadsheet tidak ditemukan.' };
-    var sheet = getSheetKaryawan(ss);
-    if (!sheet) return { success: false, error: 'Sheet Data Karyawan tidak ditemukan.' };
-
-    var rowId = payload.id;
-    var nrp = payload.nrp;
-    var docKey = payload.docKey;
-    var base64 = payload.base64;
-    var colHeader = "Foto_" + docKey;
-
-    if (!base64) {
-      return { success: false, error: 'Data foto tidak diterima.' };
-    }
-
-    var folder;
-    try {
-      folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-    } catch(errFolder) {
-      return { success: false, error: 'Gagal membuka folder Google Drive. Pastikan ID folder benar: ' + errFolder.toString() };
-    }
-
-    var cleanBase64 = base64;
-    var mimeType = "image/jpeg";
-    if (cleanBase64.indexOf(";base64,") > -1) {
-      var parts = cleanBase64.split(";base64,");
-      mimeType = parts[0].replace("data:", "").trim();
-      cleanBase64 = parts[1];
-    } else if (cleanBase64.indexOf("base64,") > -1) {
-      cleanBase64 = cleanBase64.split("base64,")[1];
-    }
-
-    var fileName = (nrp ? nrp : "MP") + "_" + docKey + "_" + Utilities.formatDate(new Date(), "GMT+8", "yyyyMMdd_HHmmss") + ".jpg";
-    var decoded = Utilities.base64Decode(cleanBase64);
-    var blob = Utilities.newBlob(decoded, mimeType, fileName);
-    var file = folder.createFile(blob);
-    
-    // Set hak akses agar gambar dapat tampil langsung
-    try {
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    } catch(errShare) {}
-
-    var fileId = file.getId();
-    var driveUrl = "https://lh3.googleusercontent.com/d/" + fileId;
-
-    ensureHeadersExist(sheet, [colHeader]);
-
-    var data = sheet.getDataRange().getValues();
-    var displayData = sheet.getDataRange().getDisplayValues();
-    var headers = data[0];
-    var colIndex = headers.indexOf(colHeader);
-    var idIndex = headers.indexOf('ID');
-    var nrpIndex = headers.indexOf('NRP');
-
-    if (colIndex === -1) {
-      return { success: false, error: 'Kolom ' + colHeader + ' tidak ditemukan di sheet.' };
-    }
-
-    var targetRow = -1;
-    for (var i = 1; i < data.length; i++) {
-      var rId = String(data[i][idIndex] || '');
-      var rNrp = String(displayData[i][nrpIndex] || '').trim();
-      if ((rowId && rId === String(rowId)) || (nrp && rNrp.toUpperCase() === String(nrp).trim().toUpperCase())) {
-        targetRow = i + 1;
-        break;
-      }
-    }
-
-    if (targetRow > -1) {
-      sheet.getRange(targetRow, colIndex + 1).setValue(driveUrl);
-      SpreadsheetApp.flush();
-      return { success: true, url: driveUrl, docKey: docKey, id: rowId, nrp: nrp, fileId: fileId };
-    } else {
-      return { success: true, url: driveUrl, docKey: docKey, warning: 'Foto tersimpan di Drive, baris sheet belum diperbarui.' };
-    }
+    var folder = DriveApp.getFolderById(FOLDER_ID.trim());
+    Logger.log("BERHASIL! Folder terhubung: " + folder.getName());
+    SpreadsheetApp.getActiveSpreadsheet().toast("Koneksi Google Drive Berhasil!", "Sukses", 5);
   } catch(e) {
-    return { success: false, error: e.toString() };
+    Logger.log("Folder ID khusus belum ditemukan, menggunakan root folder: " + e.toString());
   }
 }
 
-function responseJSON(data) {
-  return ContentService.createTextOutput(JSON.stringify(data))
+function doGet(e) {
+  var action = e && e.parameter ? e.parameter.action : "";
+  if (action === "getUnit") {
+    return ContentService.createTextOutput(JSON.stringify(getUnitData()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput(JSON.stringify(getKaryawanData()))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function generateId() {
-  return 'id_' + new Date().getTime() + '_' + Math.floor(Math.random() * 1000);
-}
-
-// MENGAMBIL DATA DARI SHEET (GET)
-function getData(sheetName) {
-  var ss = getSpreadsheet();
-  if (!ss) return [];
-  var sheet = (sheetName === 'Data Karyawan') ? getSheetKaryawan(ss) : (ss.getSheetByName(sheetName) || ss.getSheets()[0]);
-  if (!sheet) return [];
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(30000);
   
-  var data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return [];
-
-  var headers = data[0];
-  var result = [];
-  
-  for (var i = 1; i < data.length; i++) {
-    var obj = {};
-    for (var j = 0; j < headers.length; j++) {
-      var val = data[i][j];
-      
-      if (Object.prototype.toString.call(val) === '[object Date]') {
-        var ms = val.getTime() - (val.getTimezoneOffset() * 60000);
-        val = new Date(ms).toISOString().split('T')[0];
-      }
-      
-      if (headers[j] === 'NoHP' && typeof val === 'string') {
-        val = val.replace(/^'/, '');
-      }
-
-      obj[headers[j]] = val;
+  try {
+    var contents = e.postData ? e.postData.contents : "{}";
+    var req = JSON.parse(contents);
+    var action = req.action;
+    
+    if (action === "uploadPhoto") {
+      var uploadRes = uploadPhotoToDrive(req);
+      return ContentService.createTextOutput(JSON.stringify(uploadRes))
+        .setMimeType(ContentService.MimeType.JSON);
     }
-    result.push(obj);
+    
+    if (action === "saveKaryawan") {
+      var res = saveKaryawanData(req.data);
+      return ContentService.createTextOutput(JSON.stringify(res))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === "deleteKaryawan") {
+      var delRes = deleteKaryawanData(req.id);
+      return ContentService.createTextOutput(JSON.stringify(delRes))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === "saveUnit") {
+      var saveUnitRes = saveUnitData(req.data);
+      return ContentService.createTextOutput(JSON.stringify(saveUnitRes))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === "deleteUnit") {
+      var delUnitRes = deleteUnitData(req.id);
+      return ContentService.createTextOutput(JSON.stringify(delUnitRes))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === "importKaryawanBulk") {
+      var importRes = importBulkData(req.data);
+      return ContentService.createTextOutput(JSON.stringify(importRes))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Action tidak dikenal" }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
   }
-  
-  return result.reverse();
 }
 
-// MENYIMPAN / EDIT DATA DENGAN INTERSEPSI FOTO KE DRIVE OTOMATIS
-function saveData(sheetName, dataObj, primaryKey) {
-  var ss = getSpreadsheet();
-  if (!ss) return { success: false, error: 'Spreadsheet tidak ditemukan' };
-  var sheet = (sheetName === 'Data Karyawan') ? getSheetKaryawan(ss) : (ss.getSheetByName(sheetName) || ss.getSheets()[0]);
+// UPLOAD FOTO KE GOOGLE DRIVE & SIMPAN TAUTAN KE SPREADSHEET
+function uploadPhotoToDrive(req) {
+  var folder;
+  try {
+    folder = DriveApp.getFolderById(FOLDER_ID.trim());
+  } catch(e) {
+    folder = DriveApp.getRootFolder();
+  }
   
-  var incomingKeys = [];
-  for (var k in dataObj) {
-    if (k) incomingKeys.push(k);
-  }
-  ensureHeadersExist(sheet, incomingKeys);
-
+  var rawBase64 = req.base64.replace(/^data:image\/\w+;base64,/, "");
+  var decoded = Utilities.base64Decode(rawBase64);
+  var fName = req.fileName || ("Foto_" + (req.docKey || "Doc") + "_" + (req.id || Date.now()) + ".jpg");
+  var blob = Utilities.newBlob(decoded, "image/jpeg", fName);
+  var file = folder.createFile(blob);
+  
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch(e) {}
+  
+  var fileId = file.getId();
+  var directViewUrl = "https://lh3.googleusercontent.com/d/" + fileId;
+  
+  // Tuliskan URL ke lembar spreadsheet
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = getSheetKaryawan(ss);
   var data = sheet.getDataRange().getValues();
-  var displayData = sheet.getDataRange().getDisplayValues();
   var headers = data[0];
-
-  if (!dataObj.ID || String(dataObj.ID).indexOf("temp_") === 0) {
-    dataObj.ID = generateId();
-  }
-
-  if (sheetName === 'Data Karyawan' || sheet.getName() === 'Data Karyawan') {
-    if (!dataObj.Password) dataObj.Password = String(dataObj.NRP || '').trim();
-    if (!dataObj.StatusAkun) dataObj.StatusAkun = 'Aktif';
-  }
-
-  var rowIndex = -1;
-  var idIndex = headers.indexOf('ID');
-  var pkIndex = headers.indexOf(primaryKey);
-
-  for (var i = 1; i < data.length; i++) {
-    var rowId = String(data[i][idIndex] || '');
-    var rowPk = String(displayData[i][pkIndex] || '').trim();
-    var targetPk = String(dataObj[primaryKey] || '').trim();
-
-    if ((dataObj.ID && rowId === String(dataObj.ID)) || 
-        (targetPk && rowPk.toUpperCase() === targetPk.toUpperCase())) {
-      rowIndex = i + 1;
-      if (rowId) dataObj.ID = rowId;
-      
-      for (var h = 0; h < headers.length; h++) {
-        var key = headers[h];
-        if (dataObj[key] === undefined && data[i][h] !== undefined) {
-          dataObj[key] = data[i][h];
-        }
-      }
+  
+  var targetHeader = "Foto_" + req.docKey;
+  var colIndex = -1;
+  for (var c = 0; c < headers.length; c++) {
+    if (String(headers[c]).trim().toUpperCase() === targetHeader.toUpperCase()) {
+      colIndex = c;
       break;
     }
   }
+  
+  if (colIndex === -1) {
+    sheet.getRange(1, headers.length + 1).setValue(targetHeader);
+    colIndex = headers.length;
+  }
+  
+  var rowIndex = -1;
+  for (var r = 1; r < data.length; r++) {
+    if (String(data[r][0]) === String(req.id) || (data[r][1] && String(data[r][1]) === String(req.id))) {
+      rowIndex = r + 1;
+      break;
+    }
+  }
+  
+  if (rowIndex !== -1) {
+    sheet.getRange(rowIndex, colIndex + 1).setValue(directViewUrl);
+  }
+  
+  return {
+    status: "success",
+    url: directViewUrl,
+    fileId: fileId,
+    docKey: req.docKey
+  };
+}
 
-  var rowData = [];
-  for (var h = 0; h < headers.length; h++) {
-    var key = headers[h];
-    var val = dataObj[key];
-
-    if (val === undefined || val === null) {
-      val = "";
-    } else if (typeof val === 'string' && val.indexOf('data:image/') === 0) {
-      // Jika data base64 terkirim, otomatis upload ke Drive dan ganti dengan URL
-      try {
-        var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-        var cleanB64 = val.split(";base64,")[1] || val.split("base64,")[1] || val;
-        var mime = val.substring(5, val.indexOf(";")) || "image/jpeg";
-        var decoded = Utilities.base64Decode(cleanB64);
-        var blob = Utilities.newBlob(decoded, mime, (dataObj.NRP || "MP") + "_" + key + "_" + Date.now() + ".jpg");
-        var file = folder.createFile(blob);
-        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        val = "https://lh3.googleusercontent.com/d/" + file.getId();
-        dataObj[key] = val;
-      } catch(errB64) {
-        val = "";
+function getSheetKaryawan(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Data Karyawan") || ss.getSheetByName("Karyawan");
+  if (!sheet) {
+    var sheets = ss.getSheets();
+    for (var i = 0; i < sheets.length; i++) {
+      if (sheets[i].getName().toLowerCase().indexOf("unit") === -1) {
+        sheet = sheets[i];
+        sheet.setName("Data Karyawan");
+        break;
       }
-    } else if (typeof val === 'string' && val.length > 49000) {
-      val = val.substring(0, 49000);
+    }
+  }
+  if (!sheet) sheet = ss.insertSheet("Data Karyawan");
+  return sheet;
+}
+
+function getSheetUnit(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Data Unit") || ss.getSheetByName("Unit");
+  if (!sheet) sheet = ss.insertSheet("Data Unit");
+  return sheet;
+}
+
+function getKaryawanData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = getSheetKaryawan(ss);
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  
+  var headers = values[0].map(function(h) { return String(h).trim(); });
+  var result = [];
+  
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var obj = {};
+    var hasData = false;
+    
+    for (var j = 0; j < headers.length; j++) {
+      var headerName = headers[j];
+      var cellVal = row[j];
+      
+      if (cellVal instanceof Date) {
+        cellVal = Utilities.formatDate(cellVal, "GMT+8", "yyyy-MM-dd");
+      }
+      obj[headerName] = cellVal !== undefined && cellVal !== null ? String(cellVal) : "";
+      if (obj[headerName] !== "") hasData = true;
     }
     
-    if (headers[h] === 'NoHP' && val !== "") {
-      val = "'" + String(val).replace(/^'/, '');
+    if (hasData && (obj.NRP || obj.Nama || obj.ID)) {
+      if (!obj.StatusAkun) obj.StatusAkun = "AKTIF";
+      result.push(obj);
     }
-    rowData.push(val);
   }
-
-  if (headers.length > sheet.getMaxColumns()) {
-    sheet.insertColumnsAfter(sheet.getMaxColumns(), headers.length - sheet.getMaxColumns() + 2);
-  }
-
-  if (rowIndex > -1) {
-    sheet.getRange(rowIndex, 1, 1, headers.length).setValues([rowData]);
-  } else {
-    sheet.appendRow(rowData);
-  }
-
-  return { success: true, id: dataObj.ID };
+  return result;
 }
 
-// MENGHAPUS DATA
-function deleteData(sheetName, id) {
-  var ss = getSpreadsheet();
-  if (!ss) return { success: false, error: 'Spreadsheet tidak ditemukan' };
-  var sheet = (sheetName === 'Data Karyawan') ? getSheetKaryawan(ss) : (ss.getSheetByName(sheetName) || ss.getSheets()[0]);
-  if (!sheet) return { success: false, error: 'Sheet tidak ditemukan' };
-
+function saveKaryawanData(item) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = getSheetKaryawan(ss);
   var data = sheet.getDataRange().getValues();
-  var headers = data[0];
-  var idIndex = headers.indexOf('ID');
-
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][idIndex]) === String(id)) {
-      sheet.deleteRow(i + 1);
-      return { success: true };
-    }
-  }
-  return { success: false, error: 'ID data tidak ditemukan' };
-}
-
-// IMPORT MASSAL EXCEL
-function importBulk(sheetName, dataArray, primaryKey) {
-  if (!dataArray || dataArray.length === 0) return { success: true };
-
-  var ss = getSpreadsheet();
-  if (!ss) return { success: false, error: 'Spreadsheet tidak ditemukan' };
-  var sheet = (sheetName === 'Data Karyawan') ? getSheetKaryawan(ss) : (ss.getSheetByName(sheetName) || ss.getSheets()[0]);
+  var headers = data[0].map(function(h) { return String(h).trim(); });
   
-  ensureHeadersExist(sheet, ALL_KARYAWAN_HEADERS);
-
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
-  var idIndex = headers.indexOf('ID');
-  var pkIndex = headers.indexOf(primaryKey);
-
-  var existingRows = {}; 
-  for (var i = 1; i < data.length; i++) {
-    var pkVal = String(data[i][pkIndex]).trim().toUpperCase();
-    if (pkVal) existingRows[pkVal] = i + 1;
+  // Pastikan header baru tercatat
+  for (var key in item) {
+    if (headers.indexOf(key) === -1) {
+      headers.push(key);
+      sheet.getRange(1, headers.length).setValue(key);
+    }
   }
-
-  dataArray.forEach(function(obj) {
-    var pkVal = String(obj[primaryKey]).trim().toUpperCase();
-    if (!pkVal) return;
-
-    var rowIndex = existingRows[pkVal];
-
-    if (!obj.ID || String(obj.ID).indexOf("temp_") === 0) {
-      obj.ID = generateId();
+  
+  var rowIndex = -1;
+  for (var r = 1; r < data.length; r++) {
+    var rowId = String(data[r][0]);
+    var rowNrp = String(data[r][1]);
+    if ((item.ID && rowId === String(item.ID)) || (item.NRP && rowNrp === String(item.NRP))) {
+      rowIndex = r + 1;
+      break;
     }
-    if (!obj.Password) obj.Password = pkVal;
-    if (!obj.StatusAkun) obj.StatusAkun = 'Aktif';
-
-    var rowData = headers.map(function(h) {
-      var val = obj[h] !== undefined ? obj[h] : "";
-      if (h === 'NoHP' && val !== "") val = "'" + String(val).replace(/^'/, '');
-      return val;
-    });
-
-    if (rowIndex) {
-      rowData[idIndex] = sheet.getRange(rowIndex, idIndex + 1).getValue();
-      sheet.getRange(rowIndex, 1, 1, headers.length).setValues([rowData]);
-    } else {
-      sheet.appendRow(rowData);
-      existingRows[pkVal] = sheet.getLastRow();
+  }
+  
+  if (rowIndex === -1) {
+    if (!item.ID || String(item.ID).indexOf("temp_") === 0) {
+      item.ID = Utilities.getUuid();
     }
-  });
+    var newRow = headers.map(function(h) { return item[h] || ""; });
+    sheet.appendRow(newRow);
+  } else {
+    for (var h = 0; h < headers.length; h++) {
+      var hName = headers[h];
+      if (item[hName] !== undefined) {
+        sheet.getRange(rowIndex, h + 1).setValue(item[hName]);
+      }
+    }
+  }
+  return { status: "success", data: item };
+}
 
-  return { success: true, count: dataArray.length };
+function deleteKaryawanData(id) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = getSheetKaryawan(ss);
+  var data = sheet.getDataRange().getValues();
+  for (var r = 1; r < data.length; r++) {
+    if (String(data[r][0]) === String(id) || String(data[r][1]) === String(id)) {
+      sheet.deleteRow(r + 1);
+      return { status: "success" };
+    }
+  }
+  return { status: "not_found" };
+}
+
+function getUnitData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = getSheetUnit(ss);
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  
+  var headers = values[0].map(function(h) { return String(h).trim(); });
+  var result = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      var val = row[j];
+      if (val instanceof Date) {
+        val = Utilities.formatDate(val, "GMT+8", "yyyy-MM-dd");
+      }
+      obj[headers[j]] = val !== undefined && val !== null ? String(val) : "";
+    }
+    if (obj.NoUnit || obj.Model) result.push(obj);
+  }
+  return result;
+}
+
+function saveUnitData(item) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = getSheetUnit(ss);
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0].map(function(h) { return String(h).trim(); });
+  
+  var rowIndex = -1;
+  for (var r = 1; r < data.length; r++) {
+    if ((item.ID && String(data[r][0]) === String(item.ID)) || (item.NoUnit && String(data[r][1]).toUpperCase() === String(item.NoUnit).toUpperCase())) {
+      rowIndex = r + 1;
+      break;
+    }
+  }
+  
+  if (rowIndex === -1) {
+    if (!item.ID || String(item.ID).indexOf("temp_") === 0) item.ID = Utilities.getUuid();
+    var newRow = headers.map(function(h) { return item[h] || ""; });
+    sheet.appendRow(newRow);
+  } else {
+    for (var h = 0; h < headers.length; h++) {
+      if (item[headers[h]] !== undefined) {
+        sheet.getRange(rowIndex, h + 1).setValue(item[headers[h]]);
+      }
+    }
+  }
+  return { status: "success" };
+}
+
+function deleteUnitData(id) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = getSheetUnit(ss);
+  var data = sheet.getDataRange().getValues();
+  for (var r = 1; r < data.length; r++) {
+    if (String(data[r][0]) === String(id) || String(data[r][1]) === String(id)) {
+      sheet.deleteRow(r + 1);
+      return { status: "success" };
+    }
+  }
+  return { status: "not_found" };
+}
+
+function importBulkData(items) {
+  if (!items || !items.length) return { status: "empty" };
+  for (var i = 0; i < items.length; i++) {
+    saveKaryawanData(items[i]);
+  }
+  return { status: "success", count: items.length };
+}
+
+function setupDatabaseLengkap() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sKaryawan = getSheetKaryawan(ss);
+  if (sKaryawan.getLastRow() === 0) {
+    sKaryawan.getRange(1, 1, 1, MASTER_HEADERS_KARYAWAN.length).setValues([MASTER_HEADERS_KARYAWAN]);
+  } else {
+    var curHeaders = sKaryawan.getRange(1, 1, 1, sKaryawan.getLastColumn()).getValues()[0];
+    for (var i = 0; i < MASTER_HEADERS_KARYAWAN.length; i++) {
+      if (curHeaders.indexOf(MASTER_HEADERS_KARYAWAN[i]) === -1) {
+        sKaryawan.getRange(1, sKaryawan.getLastColumn() + 1).setValue(MASTER_HEADERS_KARYAWAN[i]);
+      }
+    }
+  }
+  
+  var sUnit = getSheetUnit(ss);
+  if (sUnit.getLastRow() === 0) {
+    sUnit.getRange(1, 1, 1, MASTER_HEADERS_UNIT.length).setValues([MASTER_HEADERS_UNIT]);
+  }
+  
+  ujiIzinDriveDanFolder();
 }
