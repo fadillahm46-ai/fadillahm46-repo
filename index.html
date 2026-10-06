@@ -1368,7 +1368,29 @@
 
         function openEditPribadiModal() {
             const data = currentUser.data;
-            document.getElementById('edit_TglLahir').value = data.TglLahir || '';
+            if (data.TglLahir) {
+                try {
+                    const cleanDate = String(data.TglLahir).split('T')[0].trim();
+                    if (cleanDate.includes('-')) {
+                        document.getElementById('edit_TglLahir').value = cleanDate;
+                    } else if (cleanDate.includes('/')) {
+                        const pts = cleanDate.split('/');
+                        if (pts.length === 3) {
+                            const y = pts[2].length === 4 ? pts[2] : (parseInt(pts[2], 10) > 50 ? '19' + pts[2] : '20' + pts[2]);
+                            document.getElementById('edit_TglLahir').value = `${y}-${pts[1].padStart(2, '0')}-${pts[0].padStart(2, '0')}`;
+                        } else {
+                            document.getElementById('edit_TglLahir').value = cleanDate;
+                        }
+                    } else {
+                        document.getElementById('edit_TglLahir').value = cleanDate;
+                    }
+                } catch(e) {
+                    document.getElementById('edit_TglLahir').value = data.TglLahir || '';
+                }
+            } else {
+                document.getElementById('edit_TglLahir').value = '';
+            }
+
             document.getElementById('edit_NoHP').value = data.NoHP || '';
             const passInput = document.getElementById('edit_Password');
             if (passInput) {
@@ -1415,14 +1437,27 @@
             const noHp = document.getElementById('edit_NoHP').value.trim();
             const newPassword = document.getElementById('edit_Password').value.trim();
 
+            if (!currentUser || !currentUser.data) return;
+
+            Swal.fire({
+                title: 'Menyimpan Perubahan...',
+                text: 'Mengirim data ke database server...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
             const updatedData = { ...currentUser.data, TglLahir: tglLahir, NoHP: noHp };
             if (newPassword) {
                 updatedData.Password = newPassword;
             }
 
             const targetList = [...karyawanData];
-            const idx = targetList.findIndex(k => String(k.ID) === String(updatedData.ID));
-            if (idx > -1) targetList[idx] = updatedData;
+            const idx = targetList.findIndex(k => String(k.ID) === String(updatedData.ID) || String(k.NRP) === String(updatedData.NRP));
+            if (idx > -1) {
+                targetList[idx] = updatedData;
+            } else {
+                targetList.push(updatedData);
+            }
             
             updateKaryawanCacheAndRender(targetList);
             currentUser.data = updatedData;
@@ -1430,22 +1465,37 @@
             renderManpowerPortal(updatedData);
             closeEditPribadiModal();
 
-            Swal.fire({ 
-                icon: 'success', 
-                title: 'Data Berhasil Disimpan!', 
-                text: newPassword ? 'Password dan data pribadi Anda telah berhasil diperbarui.' : 'Data pribadi Anda berhasil diperbarui.',
-                timer: 1800, 
-                showConfirmButton: false 
-            });
-
             try {
-                await fetchWithTimeout(API_URL, {
+                const res = await fetchWithTimeout(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'saveKaryawan', data: updatedData }),
-                    timeout: 20000
+                    timeout: 25000
                 });
-            } catch (err) {}
+                const resText = await res.text();
+                let resJson = {};
+                try { resJson = JSON.parse(resText); } catch(ex) {}
+
+                if (resJson.error) {
+                    throw new Error(resJson.error);
+                }
+
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Data Berhasil Disimpan!', 
+                    text: newPassword ? 'Password dan data pribadi Anda telah berhasil disimpan di server.' : 'Data pribadi Anda berhasil disimpan di server.',
+                    timer: 2000, 
+                    showConfirmButton: false 
+                });
+            } catch (err) {
+                console.error("Save data pribadi server error:", err);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tersimpan di Perangkat',
+                    text: 'Data tersimpan di perangkat Anda. Namun gagal terhubung ke server (' + (err.message || 'Koneksi timeout') + ').',
+                    confirmButtonColor: '#2563eb'
+                });
+            }
         }
 
         function openPhotoModalById(rowId, docKey, docTitle) {
@@ -1488,34 +1538,71 @@
             document.getElementById('photoFileInput').click();
         }
 
-        function handlePhotoUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            // Kompresi client-side (lebar maksimal 500px kualitas 0.55 untuk batas sel sheet)
+        function compressImageForStorage(file, maxChars, callback) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
+                    let maxDimension = 480;
+                    let quality = 0.6;
                     const canvas = document.createElement('canvas');
-                    const maxW = 500;
-                    let width = img.width;
-                    let height = img.height;
-                    if (width > maxW) {
-                        height = Math.round((height * maxW) / width);
-                        width = maxW;
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.55);
 
-                    saveDocumentPhoto(compressedBase64);
+                    function process() {
+                        let w = img.width;
+                        let h = img.height;
+                        if (w > h) {
+                            if (w > maxDimension) {
+                                h = Math.round((h * maxDimension) / w);
+                                w = maxDimension;
+                            }
+                        } else {
+                            if (h > maxDimension) {
+                                w = Math.round((w * maxDimension) / h);
+                                h = maxDimension;
+                            }
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        ctx.clearRect(0, 0, w, h);
+                        ctx.drawImage(img, 0, 0, w, h);
+
+                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        if (dataUrl.length > maxChars && (quality > 0.15 || maxDimension > 200)) {
+                            if (quality > 0.3) {
+                                quality -= 0.1;
+                            } else {
+                                maxDimension -= 50;
+                                quality = 0.5;
+                            }
+                            process();
+                        } else {
+                            callback(dataUrl);
+                        }
+                    }
+                    process();
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
+        }
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            Swal.fire({
+                title: 'Mengompres Foto...',
+                text: 'Menyesuaikan ukuran gambar untuk database server',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            compressImageForStorage(file, 35000, function(compressedBase64) {
+                Swal.close();
+                saveDocumentPhoto(compressedBase64);
+            });
+            event.target.value = '';
         }
 
         async function saveDocumentPhoto(base64Data) {
@@ -1540,16 +1627,38 @@
             document.getElementById('photoModalImg').classList.remove('hidden');
             document.getElementById('photoModalPlaceholder').classList.add('hidden');
 
-            Swal.fire({ icon: 'success', title: 'Foto Diperbarui!', text: `Foto ${docTitle} berhasil disimpan.`, timer: 1500, showConfirmButton: false });
+            Swal.fire({
+                title: 'Menyimpan Foto...',
+                text: 'Menyimpan ke database server...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
 
             try {
-                await fetchWithTimeout(API_URL, {
+                const res = await fetchWithTimeout(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'saveKaryawan', data: updatedRow }),
                     timeout: 25000
                 });
-            } catch(e) {}
+                const resText = await res.text();
+                let resJson = {};
+                try { resJson = JSON.parse(resText); } catch(ex) {}
+
+                if (resJson.error) {
+                    throw new Error(resJson.error);
+                }
+
+                Swal.fire({ icon: 'success', title: 'Foto Tersimpan!', text: `Foto ${docTitle} berhasil disimpan ke database.`, timer: 1500, showConfirmButton: false });
+            } catch(e) {
+                console.error("Save photo server error:", e);
+                Swal.fire({ 
+                    icon: 'warning', 
+                    title: 'Tersimpan di Perangkat', 
+                    text: 'Foto tersimpan di perangkat Anda, namun gagal tersambung ke database Google Sheet (' + (e.message || 'Timeout') + ').', 
+                    confirmButtonColor: '#2563eb' 
+                });
+            }
         }
 
         function filterAccountTable() {
