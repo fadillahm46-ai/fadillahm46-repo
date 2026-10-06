@@ -51,60 +51,118 @@ function getSheetKaryawan(ss) {
       }
     }
   }
+
+  // Jika tidak ditemukan lembar berlabel NRP, gunakan lembar pertama
+  sheets[0].setName('Data Karyawan');
   return sheets[0];
 }
 
 /**
- * FUNGSI OTOMATIS MEMBUAT SEMUA KOLOM BARU
+ * DAFTAR LENGKAP 27 HEADER KOLOM DATA KARYAWAN (A - AA)
+ */
+var ALL_KARYAWAN_HEADERS = [
+  "ID", "NRP", "Nama", "Perusahaan", "Jabatan", "TglLahir",
+  "ExpSIMPER_BIB", "ExpSIMPER_TIA", "ExpSIM_B2", "TglMCU", "ExpMCU",
+  "TglLOTOTO", "ExpDangerTag", "TglAwareness", "ExpKetinggian", "TglSIO", "ExpSIO",
+  "NoHP", "Password", "StatusAkun",
+  "Foto_BIB", "Foto_TIA", "Foto_SIM", "Foto_MCU", "Foto_DTAG", "Foto_KET", "Foto_SIO"
+];
+
+/**
+ * DAFTAR LENGKAP HEADER KOLOM DATA UNIT
+ */
+var ALL_UNIT_HEADERS = [
+  "ID", "NoUnit", "Model", "ExpKom_BIB", "ExpKom_TIA", "ExpKom_TMA"
+];
+
+/**
+ * FUNGSI UTAMA: SETUP DATABASE LENGKAP SATU KALI KLIK
  * Pilih fungsi ini di menu dropdown atas Apps Script, lalu klik 'Jalankan'.
  */
-function tambahSemuaKolomBaru() {
+function setupDatabaseLengkap() {
   var ss = getSpreadsheet();
   if (!ss) {
     Logger.log("Gagal: Spreadsheet tidak ditemukan.");
     return;
   }
 
-  var sheet = getSheetKaryawan(ss);
+  // 1. SETUP SHEET DATA KARYAWAN
+  var sheetKaryawan = getSheetKaryawan(ss);
+  var maxCols = Math.max(sheetKaryawan.getMaxColumns(), 1);
+  var r1 = sheetKaryawan.getRange(1, 1, 1, maxCols).getDisplayValues()[0];
+  var hasNRP = r1.some(function(h) { return String(h).trim().toUpperCase() === "NRP"; });
+  var hasData = sheetKaryawan.getLastRow() > 1;
 
-  var standardHeaders = [
-    "NoHP", "Password", "StatusAkun",
-    "Foto_BIB", "Foto_TIA", "Foto_SIM", "Foto_MCU", "Foto_DTAG", "Foto_KET", "Foto_SIO"
-  ];
+  // Jika baris ke-2 masih kosong atau tidak memiliki kolom NRP sama sekali (seperti di tangkapan layar)
+  if (!hasNRP && !hasData) {
+    sheetKaryawan.clear();
+    if (sheetKaryawan.getMaxColumns() < ALL_KARYAWAN_HEADERS.length) {
+      sheetKaryawan.insertColumnsAfter(sheetKaryawan.getMaxColumns(), ALL_KARYAWAN_HEADERS.length - sheetKaryawan.getMaxColumns() + 2);
+    }
+    sheetKaryawan.getRange(1, 1, 1, ALL_KARYAWAN_HEADERS.length)
+      .setValues([ALL_KARYAWAN_HEADERS])
+      .setFontWeight("bold")
+      .setBackground("#f3f4f6")
+      .setHorizontalAlignment("center");
+    sheetKaryawan.setFrozenRows(1);
+  } else {
+    // Jika sudah ada data karyawan lama, tambahkan hanya kolom yang belum ada di paling kanan
+    ensureHeadersExist(sheetKaryawan, ALL_KARYAWAN_HEADERS);
+  }
 
-  ensureHeadersExist(sheet, standardHeaders);
+  // 2. SETUP SHEET DATA UNIT
+  var sheetUnit = ss.getSheetByName('Data Unit');
+  if (!sheetUnit) {
+    sheetUnit = ss.insertSheet('Data Unit');
+    sheetUnit.getRange(1, 1, 1, ALL_UNIT_HEADERS.length)
+      .setValues([ALL_UNIT_HEADERS])
+      .setFontWeight("bold")
+      .setBackground("#f3f4f6")
+      .setHorizontalAlignment("center");
+    sheetUnit.setFrozenRows(1);
+  } else {
+    ensureHeadersExist(sheetUnit, ALL_UNIT_HEADERS);
+  }
 
-  var pesan = "Berhasil! Kolom NoHP, Password, StatusAkun, dan seluruh kolom Foto Dokumen sudah aktif di sheet [" + sheet.getName() + "].";
-  Logger.log(pesan);
-  try {
-    SpreadsheetApp.getUi().alert("Hasil Setup", pesan, SpreadsheetApp.getUi().ButtonSet.OK);
-  } catch (e) {}
+  SpreadsheetApp.flush();
+  Logger.log("Berhasil! Seluruh kolom Data Karyawan (27 Kolom) dan Data Unit (6 Kolom) telah tersusun rapi.");
+}
+
+/**
+ * Alias agar kompatibel jika memilih fungsi tambahSemuaKolomBaru
+ */
+function tambahSemuaKolomBaru() {
+  setupDatabaseLengkap();
+}
+
+/**
+ * Alias agar kompatibel jika memilih fungsi setupSheets
+ */
+function setupSheets() {
+  setupDatabaseLengkap();
 }
 
 /**
  * Memastikan kolom baru otomatis terpasang tanpa error batas kolom
  */
-function ensureHeadersExist(sheet, newHeadersList) {
-  if (!sheet) sheet = getSheetKaryawan();
-  var maxCols = sheet.getMaxColumns();
-  var r1 = sheet.getRange(1, 1, 1, maxCols).getValues()[0];
+function ensureHeadersExist(sheet, headersList) {
+  if (!sheet) return;
+  var maxCols = Math.max(sheet.getMaxColumns(), 1);
+  var r1 = sheet.getRange(1, 1, 1, maxCols).getDisplayValues()[0];
   
   var existingHeaders = [];
   var lastColWithHeader = 0;
   for (var c = 0; c < r1.length; c++) {
     var hName = String(r1[c]).trim();
     if (hName !== "") {
-      existingHeaders.push(hName);
+      existingHeaders.push(hName.toLowerCase());
       lastColWithHeader = c + 1;
     }
   }
 
   var toAdd = [];
-  newHeadersList.forEach(function(key) {
-    var exists = existingHeaders.some(function(h) {
-      return h.toLowerCase() === key.toLowerCase();
-    });
-    if (!exists) {
+  headersList.forEach(function(key) {
+    if (existingHeaders.indexOf(String(key).trim().toLowerCase()) === -1) {
       toAdd.push(key);
     }
   });
@@ -112,7 +170,7 @@ function ensureHeadersExist(sheet, newHeadersList) {
   if (toAdd.length > 0) {
     var neededCols = lastColWithHeader + toAdd.length;
     if (neededCols > sheet.getMaxColumns()) {
-      sheet.insertColumnsAfter(sheet.getMaxColumns(), neededCols - sheet.getMaxColumns() + 3);
+      sheet.insertColumnsAfter(sheet.getMaxColumns(), neededCols - sheet.getMaxColumns() + 2);
     }
     for (var i = 0; i < toAdd.length; i++) {
       var colIdx = lastColWithHeader + i + 1;
@@ -126,32 +184,9 @@ function ensureHeadersExist(sheet, newHeadersList) {
   }
 }
 
-/**
- * Inisialisasi awal saat request pertama kali masuk
- */
-function setupSheets() {
-  var ss = getSpreadsheet();
-  if (!ss) return;
-
-  var sheetKaryawan = getSheetKaryawan(ss);
-  var standardHeaders = [
-    "NoHP", "Password", "StatusAkun",
-    "Foto_BIB", "Foto_TIA", "Foto_SIM", "Foto_MCU", "Foto_DTAG", "Foto_KET", "Foto_SIO"
-  ];
-  ensureHeadersExist(sheetKaryawan, standardHeaders);
-
-  var headersUnit = ["ID", "NoUnit", "Model", "ExpKom_BIB", "ExpKom_TIA", "ExpKom_TMA"];
-  var sheetUnit = ss.getSheetByName('Data Unit');
-  if (!sheetUnit) {
-    sheetUnit = ss.insertSheet('Data Unit');
-    sheetUnit.appendRow(headersUnit);
-    sheetUnit.getRange(1, 1, 1, headersUnit.length).setFontWeight("bold").setBackground("#f3f4f6");
-  }
-}
-
 // ROUTING GET
 function doGet(e) {
-  setupSheets();
+  setupDatabaseLengkap();
   var action = e && e.parameter ? e.parameter.action : '';
   
   if (action === 'getKaryawan') {
@@ -169,7 +204,7 @@ function doPost(e) {
     var payload = JSON.parse(e.postData.contents);
     var action = payload.action;
 
-    setupSheets();
+    setupDatabaseLengkap();
 
     if (action === 'saveKaryawan') {
       return responseJSON(saveData('Data Karyawan', payload.data, 'NRP'));
@@ -221,13 +256,13 @@ function getData(sheetName) {
     for (var j = 0; j < headers.length; j++) {
       var val = data[i][j];
       
-      // Standarisasi tanggal
+      // Standarisasi tanggal ISO
       if (Object.prototype.toString.call(val) === '[object Date]') {
         var ms = val.getTime() - (val.getTimezoneOffset() * 60000);
         val = new Date(ms).toISOString().split('T')[0];
       }
       
-      // Standarisasi NoHP jika ada awalan kutip
+      // Standarisasi NoHP jika ada awalan tanda kutip
       if (headers[j] === 'NoHP' && typeof val === 'string') {
         val = val.replace(/^'/, '');
       }
@@ -240,13 +275,13 @@ function getData(sheetName) {
   return result.reverse();
 }
 
-// MENYIMPAN / EDIT DATA DENGAN PROTEKSI BATAS SEL 50.000 KARAKTER
+// MENYIMPAN / EDIT DATA DENGAN PROTEKSI DUPLIKAT DAN BATAS KARAKTER SEL
 function saveData(sheetName, dataObj, primaryKey) {
   var ss = getSpreadsheet();
   if (!ss) return { success: false, error: 'Spreadsheet tidak ditemukan' };
   var sheet = (sheetName === 'Data Karyawan') ? getSheetKaryawan(ss) : (ss.getSheetByName(sheetName) || ss.getSheets()[0]);
   
-  // Pastikan kolom dataObj ada di sheet
+  // Pastikan seluruh kolom yang dikirim ada di sheet
   var incomingKeys = [];
   for (var k in dataObj) {
     if (k) incomingKeys.push(k);
@@ -275,11 +310,13 @@ function saveData(sheetName, dataObj, primaryKey) {
     var rowPk = String(displayData[i][pkIndex] || '').trim();
     var targetPk = String(dataObj[primaryKey] || '').trim();
 
+    // Prioritas pencocokan berdasarkan ID atau Primary Key (NRP / NoUnit)
     if ((dataObj.ID && rowId === String(dataObj.ID)) || 
         (targetPk && rowPk.toUpperCase() === targetPk.toUpperCase())) {
       rowIndex = i + 1;
       if (rowId) dataObj.ID = rowId;
       
+      // Pertahankan nilai kolom yang tidak ikut dikirim pada request ini
       for (var h = 0; h < headers.length; h++) {
         var key = headers[h];
         if (dataObj[key] === undefined && data[i][h] !== undefined) {
@@ -347,11 +384,7 @@ function importBulk(sheetName, dataArray, primaryKey) {
   if (!ss) return { success: false, error: 'Spreadsheet tidak ditemukan' };
   var sheet = (sheetName === 'Data Karyawan') ? getSheetKaryawan(ss) : (ss.getSheetByName(sheetName) || ss.getSheets()[0]);
   
-  var standardHeaders = [
-    "NoHP", "Password", "StatusAkun",
-    "Foto_BIB", "Foto_TIA", "Foto_SIM", "Foto_MCU", "Foto_DTAG", "Foto_KET", "Foto_SIO"
-  ];
-  ensureHeadersExist(sheet, standardHeaders);
+  ensureHeadersExist(sheet, ALL_KARYAWAN_HEADERS);
 
   var data = sheet.getDataRange().getValues();
   var headers = data[0];
