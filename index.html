@@ -16,11 +16,11 @@
     <!-- Google Fonts: Inter & Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- FontAwesome -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SweetAlert2 -->
+    <!-- SweetAlert2 Modal -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- html2canvas -->
+    <!-- html2canvas for Screenshot Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Chart.js & DataLabels -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -84,7 +84,7 @@
 <body class="text-slate-800 h-screen flex flex-col overflow-hidden bg-slate-100">
 
     <!-- ============================================================= -->
-    <!-- VIEW: LOGIN PAGE (Sesuai Referensi Gambar) -->
+    <!-- VIEW: LOGIN PAGE -->
     <!-- ============================================================= -->
     <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-4 login-bg transition-opacity duration-300">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 sm:p-9 relative z-10">
@@ -169,7 +169,7 @@
                         <span class="text-[10px] text-blue-400">SE Monitoring v2.0</span>
                     </div>
                 </div>
-                <button onclick="confirmLogout()" class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-rose-500/15 text-rose-300 hover:bg-rose-600 hover:text-white rounded-lg transition-all text-xs font-semibold border border-rose-500/30">
+                <button onclick="confirmLogout()" class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-rose-500/15 text-rose-300 hover:bg-rose-600 hover:text-white rounded-lg transition-all text-xs font-semibold border border-rose-500/30 cursor-pointer">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar Akun
                 </button>
             </div>
@@ -363,15 +363,16 @@
                                 </div>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                                <button onclick="exportToCSV()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-xs shadow-sm whitespace-nowrap">
+                                <button onclick="exportToCSV()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-xs shadow-sm whitespace-nowrap cursor-pointer">
                                     <i class="fa-solid fa-file-excel"></i> Export Rekap
                                 </button>
-                                <button onclick="openModal()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-xs shadow-sm whitespace-nowrap">
+                                <button onclick="openModal()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-xs shadow-sm whitespace-nowrap cursor-pointer">
                                     <i class="fa-solid fa-user-plus"></i> Tambah Karyawan
                                 </button>
                             </div>
                         </div>
                         
+                        <!-- TABEL DENGAN HEADER SORTIR LENGKAP -->
                         <div class="overflow-auto flex-1 custom-scrollbar border border-slate-200 rounded-lg relative" style="max-height: calc(100vh - 65px);">
                             <table class="w-full text-left text-sm whitespace-nowrap min-w-max relative">
                                 <thead class="bg-slate-50 text-slate-600 sticky top-0 z-20 shadow-sm text-xs uppercase">
@@ -380,13 +381,13 @@
                                         <th class="px-4 py-3 cursor-pointer hover:text-blue-600 bg-slate-50" onclick="sortTable('nrp')">NAMA / NRP <i class="fa-solid fa-sort ml-1"></i></th>
                                         <th class="px-4 py-3 cursor-pointer hover:text-blue-600 bg-slate-50" onclick="sortTable('perusahaan')">PERUSAHAAN / JABATAN <i class="fa-solid fa-sort ml-1"></i></th>
                                         <th class="px-3 py-3 bg-slate-50">NO HP</th>
-                                        <th class="px-4 py-3 text-center bg-slate-50">MP BIB</th>
-                                        <th class="px-4 py-3 text-center bg-slate-50">MP TIA</th>
-                                        <th class="px-4 py-3 text-center bg-slate-50">SIM B2</th>
-                                        <th class="px-4 py-3 text-center bg-slate-50">MCU</th>
-                                        <th class="px-4 py-3 text-center bg-slate-50">DANGER TAG</th>
-                                        <th class="px-4 py-3 text-center bg-slate-50">KETINGGIAN</th>
-                                        <th class="px-4 py-3 text-center bg-slate-50">SIO</th>
+                                        <th class="px-4 py-3 text-center cursor-pointer hover:text-blue-600 bg-slate-50" onclick="sortTable('mp_bib')">MP BIB <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 text-center cursor-pointer hover:text-blue-600 bg-slate-50" onclick="sortTable('mp_tia')">MP TIA <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 text-center cursor-pointer hover:text-blue-600 bg-slate-50" onclick="sortTable('sim_b2')">SIM B2 <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 text-center cursor-pointer hover:text-blue-600 bg-slate-50" onclick="sortTable('mcu')">MCU <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 text-center cursor-pointer hover:text-blue-600 bg-slate-50" onclick="sortTable('dtag')">DANGER TAG <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 text-center cursor-pointer hover:text-blue-600 bg-slate-50" onclick="sortTable('ket')">KETINGGIAN <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 text-center cursor-pointer hover:text-blue-600 bg-slate-50" onclick="sortTable('sio')">SIO <i class="fa-solid fa-sort ml-1"></i></th>
                                         <th class="px-3 py-3 text-center text-rose-500 bg-slate-50"><i class="fa-solid fa-trash-can"></i> HAPUS</th>
                                     </tr>
                                 </thead>
@@ -395,12 +396,52 @@
                         </div>
                         <div class="mt-1 text-[11px] text-slate-500 flex justify-between items-center shrink-0">
                             <span>Total Karyawan Ditampilkan: <b id="totalDataCount" class="text-slate-800">0</b></span>
-                            <span class="text-[10px] text-slate-400 italic"><i class="fa-solid fa-circle-info mr-1"></i>Klik tanggal untuk pratinjau foto dokumen</span>
+                            <span class="text-[10px] text-slate-400 italic"><i class="fa-solid fa-circle-info mr-1"></i>Klik tanggal atau tanda mata untuk melihat / upload foto</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- VIEW: MANAJEMEN AKUN (NEW MENU) -->
+                <!-- VIEW: DATA UNIT -->
+                <div id="dataunit-view" class="hidden flex-1 flex flex-col h-full pb-0">
+                    <div class="bg-white p-2.5 md:p-3.5 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
+                        <div class="flex flex-col md:flex-row justify-between gap-2 mb-2 shrink-0">
+                            <div class="relative w-full md:w-96">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                                <input type="text" id="searchUnitInput" oninput="filterUnitTable()" placeholder="Cari No Unit, Model..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                                <button onclick="exportUnitToCSV()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm shadow-sm whitespace-nowrap cursor-pointer">
+                                    <i class="fa-solid fa-file-excel"></i> Export Rekap
+                                </button>
+                                <button onclick="openUnitModal()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm shadow-sm whitespace-nowrap cursor-pointer">
+                                    <i class="fa-solid fa-truck-medical"></i> Tambah Unit
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-auto flex-1 custom-scrollbar border border-slate-200 rounded-lg relative" style="max-height: calc(100vh - 65px);">
+                            <table class="w-full text-left text-sm whitespace-nowrap min-w-max relative">
+                                <thead class="bg-slate-50 text-slate-500 sticky top-0 z-20 shadow-md">
+                                    <tr>
+                                        <th class="px-4 py-3 font-semibold text-center w-16 bg-slate-50">AKSI</th>
+                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 bg-slate-50" onclick="sortUnitTable('nounit')">NO UNIT <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 bg-slate-50" onclick="sortUnitTable('model')">MODEL / TIPE <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 text-center bg-slate-50" onclick="sortUnitTable('kom_bib')">KOMISIONING BIB <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 text-center bg-slate-50" onclick="sortUnitTable('kom_tia')">KOMISIONING TIA <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 text-center bg-slate-50" onclick="sortUnitTable('kom_tma')">KOMISIONING TMA <i class="fa-solid fa-sort ml-1"></i></th>
+                                        <th class="px-4 py-3 font-semibold w-24 text-center text-rose-500 bg-slate-50"><i class="fa-solid fa-trash-can"></i> HAPUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="unitTableBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                        <div class="mt-1 text-[11px] text-slate-500 flex justify-between items-center shrink-0">
+                            <span>Total Unit Ditampilkan: <b id="totalUnitCount" class="text-slate-800">0</b></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: MANAJEMEN AKUN (DIBAWAH DATA UNIT) -->
                 <div id="account-view" class="hidden flex-1 flex flex-col h-full pb-0">
                     <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3 shrink-0">
@@ -439,45 +480,6 @@
                     </div>
                 </div>
 
-                <!-- VIEW: DATA UNIT -->
-                <div id="dataunit-view" class="hidden flex-1 flex flex-col h-full pb-0">
-                    <div class="bg-white p-2.5 md:p-3.5 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
-                        <div class="flex flex-col md:flex-row justify-between gap-2 mb-2 shrink-0">
-                            <div class="relative w-full md:w-96">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
-                                <input type="text" id="searchUnitInput" oninput="filterUnitTable()" placeholder="Cari No Unit, Model..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
-                            </div>
-                            <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                                <button onclick="exportUnitToCSV()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm shadow-sm whitespace-nowrap">
-                                    <i class="fa-solid fa-file-excel"></i> Export Rekap
-                                </button>
-                                <button onclick="openUnitModal()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm shadow-sm whitespace-nowrap">
-                                    <i class="fa-solid fa-truck-medical"></i> Tambah Unit
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="overflow-auto flex-1 custom-scrollbar border border-slate-200 rounded-lg relative" style="max-height: calc(100vh - 65px);">
-                            <table class="w-full text-left text-sm whitespace-nowrap min-w-max relative">
-                                <thead class="bg-slate-50 text-slate-500 sticky top-0 z-20 shadow-md">
-                                    <tr>
-                                        <th class="px-4 py-3 font-semibold text-center w-16 bg-slate-50">AKSI</th>
-                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 bg-slate-50" onclick="sortUnitTable('nounit')">NO UNIT <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 bg-slate-50" onclick="sortUnitTable('model')">MODEL / TIPE <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 text-center bg-slate-50" onclick="sortUnitTable('kom_bib')">KOMISIONING BIB <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 text-center bg-slate-50" onclick="sortUnitTable('kom_tia')">KOMISIONING TIA <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-indigo-600 text-center bg-slate-50" onclick="sortUnitTable('kom_tma')">KOMISIONING TMA <i class="fa-solid fa-sort ml-1"></i></th>
-                                        <th class="px-4 py-3 font-semibold w-24 text-center text-rose-500 bg-slate-50"><i class="fa-solid fa-trash-can"></i> HAPUS</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="unitTableBody" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                        <div class="mt-1 text-[11px] text-slate-500 flex justify-between items-center shrink-0">
-                            <span>Total Unit Ditampilkan: <b id="totalUnitCount" class="text-slate-800">0</b></span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </main>
     </div>
@@ -486,7 +488,7 @@
     <!-- VIEW: MANPOWER PORTAL (KHUSUS LOGIN KARYAWAN) -->
     <!-- ============================================================= -->
     <div id="manpower-wrapper" class="hidden flex-1 h-screen flex flex-col overflow-hidden bg-slate-100">
-        <!-- Body Manpower: Kartu Karyawan -->
+        <!-- Body Manpower: Kartu Karyawan Mandiri -->
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center justify-center custom-scrollbar">
             <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col my-auto">
                 <!-- Header Kartu -->
@@ -502,9 +504,9 @@
                     </div>
                 </div>
 
-                <!-- Dokumen & Expiry List -->
+                <!-- Dokumen & Expiry List (Disesuaikan dengan Jabatan Karyawan) -->
                 <div class="p-4 sm:p-5 space-y-4 bg-slate-50 flex-1">
-                    <!-- Mine Permit -->
+                    <!-- Mine Permit Section -->
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm" id="mp_section_Permit">
                         <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                             <i class="fa-solid fa-id-card text-blue-500"></i> Mine Permit & Lisensi
@@ -525,7 +527,7 @@
                         </div>
                     </div>
 
-                    <!-- Kesehatan -->
+                    <!-- Kesehatan (MCU) Section -->
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm" id="mp_section_MCU">
                         <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                             <i class="fa-solid fa-notes-medical text-emerald-500"></i> Kesehatan (MCU)
@@ -542,7 +544,7 @@
                         </div>
                     </div>
 
-                    <!-- K3 & Keselamatan -->
+                    <!-- K3 & Keselamatan Section (Disembunyikan jika Administrasi) -->
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm" id="mp_section_K3">
                         <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                             <i class="fa-solid fa-helmet-safety text-amber-500"></i> K3 & Keselamatan
@@ -564,7 +566,7 @@
                     </div>
                 </div>
 
-                <!-- Footer Kartu: Tombol Aksi & Keluar Akun di Bagian Bawah -->
+                <!-- Footer Kartu: Tombol Aksi & Keluar Akun Di Bawah Edit Data Pribadi -->
                 <div class="p-4 bg-white border-t border-slate-200 flex flex-col gap-2.5">
                     <div class="flex flex-col sm:flex-row gap-2">
                         <button type="button" onclick="downloadCardAsImageMP()" class="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
@@ -583,7 +585,7 @@
     </div>
 
     <!-- ============================================================= -->
-    <!-- MODAL FOTO DOKUMEN / SERTIFIKAT (PREVIEW & GANTI FOTO) -->
+    <!-- MODAL FOTO DOKUMEN / SERTIFIKAT (PREVIEW & UPLOAD) -->
     <!-- ============================================================= -->
     <div id="photoModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] animate-[fadeIn_0.2s_ease-out]">
@@ -600,10 +602,11 @@
             <div class="p-4 flex-1 flex flex-col items-center justify-center bg-slate-50 overflow-y-auto">
                 <div class="w-full h-64 sm:h-72 bg-slate-200 rounded-xl overflow-hidden border border-slate-300 flex items-center justify-center relative shadow-inner">
                     <img id="photoModalImg" src="" alt="Dokumen" class="w-full h-full object-contain hidden">
-                    <div id="photoModalPlaceholder" class="text-center p-6 text-slate-400">
-                        <i class="fa-regular fa-image text-5xl mb-2"></i>
-                        <p class="text-xs font-medium">Belum ada foto/sertifikat yang diunggah.</p>
-                        <p class="text-[10px] text-slate-400 mt-1">Silakan klik tombol "Ganti / Unggah Foto" di bawah.</p>
+                    <div id="photoModalPlaceholder" class="text-center p-6 text-slate-500">
+                        <i class="fa-regular fa-image text-5xl mb-2 text-slate-400"></i>
+                        <p class="text-xs font-bold text-slate-700">Foto Belum Diunggah</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Belum ada foto/sertifikat yang tersimpan untuk dokumen ini.</p>
+                        <p class="text-[10px] text-blue-600 font-semibold mt-2">Klik tombol "Ganti / Unggah Foto" di bawah untuk menambahkan.</p>
                     </div>
                 </div>
 
@@ -914,7 +917,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT DATA PRIBADI (KHUSUS MANPOWER) -->
+    <!-- MODAL EDIT DATA PRIBADI (KHUSUS MANPOWER DENGAN GANTI PASSWORD) -->
     <div id="editPribadiModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-5 py-3.5 bg-slate-900 text-white flex justify-between items-center">
@@ -948,7 +951,7 @@
                         <h4 class="font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-camera text-blue-500"></i> Unggah / Ganti Foto Dokumen</h4>
                         <p class="text-[10px] text-slate-500 mb-3">Pilih dokumen yang ingin Anda perbarui fotonya:</p>
                         <div class="grid grid-cols-2 gap-2" id="mpDocPhotoButtons">
-                            <!-- Tombol ganti foto per doc digenerate dinamis -->
+                            <!-- Tombol upload foto per dokumen dinamis sesuai jabatan -->
                         </div>
                     </div>
                 </form>
@@ -990,14 +993,22 @@
         let currentUnitCriticalLists = {};
 
         // State Pratinjau Foto Dokumen
-        let activePhotoDoc = { rowObj: null, docKey: '', docTitle: '' };
+        let activePhotoDoc = { rowId: '', rowObj: null, docKey: '', docTitle: '' };
 
         document.addEventListener("DOMContentLoaded", () => {
             loadFromCache();
             checkSession();
             fetchAllDataParalel();
 
-            // Auto-sync tiap 30 detik
+            // PWA Service Worker Registration
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js')
+                        .catch(() => {});
+                });
+            }
+
+            // Sinkronisasi otomatis berkala setiap 30 detik
             setInterval(() => {
                 fetchAllDataParalel(true); 
             }, 30000); 
@@ -1016,7 +1027,7 @@
         });
 
         /**
-         * Ambang batas evaluasi dokumen
+         * Ambang batas evaluasi masa berlaku dokumen
          */
         function getDocThresholds(docName) {
             const name = String(docName || '').trim().toUpperCase();
@@ -1068,13 +1079,13 @@
                 else sisaHariText = `-${item.daysLeft} Hari`;
 
                 // Badge tanggal dapat diklik untuk membuka foto
-                const safeRow = JSON.stringify(rowObj).replace(/'/g, "\\'");
-                html += `<div onclick="openPhotoModal('${safeRow}', '${docKey}', '${item.label}')" class="group/badge cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all flex flex-col items-center justify-center px-2 py-1.5 rounded-md text-[10px] font-bold border ${item.color} shadow-sm w-full leading-tight text-center" title="Klik untuk lihat foto / sertifikat">
-                    <span class="text-[11px] mb-[2px] flex items-center gap-1">${item.date} <i class="fa-solid fa-camera opacity-0 group-hover/badge:opacity-100 text-[9px]"></i></span>
+                html += `<div onclick="openPhotoModalById('${rowObj.ID}', '${docKey}', '${item.label}')" class="group/badge cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all flex flex-col items-center justify-center px-2 py-1.5 rounded-md text-[10px] font-bold border ${item.color} shadow-sm w-full leading-tight text-center" title="Klik untuk lihat foto / sertifikat">
+                    <span class="text-[11px] mb-[2px] flex items-center justify-center gap-1">${item.date} <i class="fa-solid fa-camera opacity-0 group-hover/badge:opacity-100 text-[9px]"></i></span>
                     <span class="text-[9px] font-extrabold opacity-95">(${sisaHariText})</span>
                 </div>`;
             });
-            html += '</div>'; return html;
+            html += '</div>'; 
+            return html;
         }
 
         function checkSession() {
@@ -1131,7 +1142,7 @@
 
             // Login Admin
             if (username.toLowerCase() === 'admin' && password === 'admin123') {
-                currentUser = { role: 'admin', data: { Nama: 'Administrator', NRP: 'admin' } };
+                currentUser = { role: 'admin', data: { Nama: 'Administrator', NRP: 'admin', ID: 'admin_root' } };
                 localStorage.setItem('se_user', JSON.stringify(currentUser));
                 Swal.fire({ icon: 'success', title: 'Login Berhasil!', text: 'Selamat datang, Administrator.', timer: 1200, showConfirmButton: false });
                 applyUserView();
@@ -1196,7 +1207,7 @@
         function showForgotPasswordAlert() {
             Swal.fire({
                 title: 'Lupa Password?',
-                html: '<div class="text-xs text-slate-600 text-left space-y-2"><p>Password sementara Anda adalah <b>NRP</b>.</p><p>Jika Anda sudah mengubah password dan lupa, silakan hubungi <b>Admin SE</b> di kantor untuk mereset akun Anda.</p></div>',
+                html: '<div class="text-xs text-slate-600 text-left space-y-2"><p>Password default Anda adalah <b>NRP</b>.</p><p>Jika Anda sudah mengubah password dan lupa, silakan hubungi <b>Admin SE</b> untuk mereset akun Anda.</p></div>',
                 icon: 'info',
                 confirmButtonColor: '#2563eb'
             });
@@ -1223,7 +1234,7 @@
         }
 
         function renderManpowerPortal(row) {
-            // Update data terbaru dari memory
+            // Update data terbaru dari memori
             const latest = karyawanData.find(k => String(k.ID) === String(row.ID)) || row;
             currentUser.data = latest;
             localStorage.setItem('se_user', JSON.stringify(currentUser));
@@ -1231,7 +1242,7 @@
             document.getElementById('mpCardNama').innerText = latest.Nama || '-';
             document.getElementById('mpCardNrp').innerText = `NRP: ${latest.NRP || '-'}`;
             document.getElementById('mpCardJabatan').innerText = `${latest.Jabatan || '-'} • ${latest.Perusahaan || '-'}`;
-            document.getElementById('mpCardNoHP').innerHTML = `<i class="fa-brands fa-whatsapp mr-1"></i> ${latest.NoHP || 'Belum diisi'}`;
+            document.getElementById('mpCardNoHp').innerHTML = `<i class="fa-brands fa-whatsapp mr-1"></i> ${latest.NoHP || 'Belum diisi'}`;
 
             const renderDocRow = (elementId, docLabel, dateVal, docKey) => {
                 const el = document.getElementById(elementId);
@@ -1248,20 +1259,20 @@
                 else if (status.val === 2) badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
                 else badgeClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
 
-                // Logika khusus keterangan pengajuan / info admin saat status kuning, merah, atau hitam
+                // Logika khusus tautan pengajuan / info admin
                 let actionNoticeHtml = '';
                 if (status.val === 0 || status.val === 1 || status.val === 2) {
                     if (docKey === 'BIB') {
                         actionNoticeHtml = `
                             <div class="mt-1">
-                                <a href="https://docs.google.com/forms/d/e/1FAIpQLScYVkFmG0k0yXZLMjZVd0rZyx87TOVZMR5jh-_Bubzgzh3t4A/viewform" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 transition-all px-2 py-0.5 rounded border border-blue-300 shadow-sm" title="Klik untuk mengajukan perpanjangan permit BIB">
+                                <a href="https://docs.google.com/forms/d/e/1FAIpQLScYVkFmG0k0yXZLMjZVd0rZyx87TOVZMR5jh-_Bubzgzh3t4A/viewform" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 transition-all px-2 py-0.5 rounded border border-blue-300 shadow-sm" title="Klik untuk perpanjangan permit BIB">
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Segera Ajukan
                                 </a>
                             </div>`;
                     } else if (docKey === 'TIA') {
                         actionNoticeHtml = `
                             <div class="mt-1">
-                                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdbKLPdDhuf7XWvNR0doa1gMAQpB65OqubQD6cK0-3vIfhcLg/viewform" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 hover:text-white bg-purple-50 hover:bg-purple-600 transition-all px-2 py-0.5 rounded border border-purple-300 shadow-sm" title="Klik untuk mengajukan perpanjangan permit TIA">
+                                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdbKLPdDhuf7XWvNR0doa1gMAQpB65OqubQD6cK0-3vIfhcLg/viewform" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 hover:text-white bg-purple-50 hover:bg-purple-600 transition-all px-2 py-0.5 rounded border border-purple-300 shadow-sm" title="Klik untuk perpanjangan permit TIA">
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Segera Ajukan
                                 </a>
                             </div>`;
@@ -1275,7 +1286,6 @@
                     }
                 }
 
-                const safeRow = JSON.stringify(latest).replace(/'/g, "\\'");
                 el.innerHTML = `
                     <div class="text-right flex flex-col items-end">
                         <div class="flex items-center justify-end">
@@ -1284,7 +1294,7 @@
                         </div>
                         ${actionNoticeHtml}
                     </div>
-                    <button onclick="openPhotoModal('${safeRow}', '${docKey}', '${docLabel}')" class="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors border border-blue-200 cursor-pointer shrink-0 ml-1" title="Lihat / Ganti Foto">
+                    <button onclick="openPhotoModalById('${latest.ID}', '${docKey}', '${docLabel}')" class="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors border border-blue-200 cursor-pointer shrink-0 ml-1" title="Lihat / Ganti Foto">
                         <i class="fa-solid fa-eye text-[10px]"></i>
                     </button>
                 `;
@@ -1298,6 +1308,7 @@
             renderDocRow('mp_row_KET', 'Ketinggian', latest.ExpKetinggian, 'KET');
             renderDocRow('mp_row_SIO', 'SIO', latest.ExpSIO, 'SIO');
 
+            // Penyesuaian dokumen sesuai jabatan (Administrasi hanya MP BIB & MCU)
             const jbt = latest.Jabatan;
             const rowTia = document.getElementById('mp_container_TIA');
             if (rowTia) rowTia.style.display = isDocRelevant(jbt, 'MP_TIA') ? 'flex' : 'none';
@@ -1318,7 +1329,7 @@
             const showK3 = isDocRelevant(jbt, 'DANGER_TAG') || isDocRelevant(jbt, 'KETINGGIAN') || isDocRelevant(jbt, 'SIO');
             if (secK3) secK3.style.display = showK3 ? 'block' : 'none';
 
-            // Tanggal MCU Terakhir
+            // Tanggal Terakhir MCU
             const elTglMcu = document.getElementById('mp_row_TglMCU');
             if (latest.TglMCU) {
                 const parts = latest.TglMCU.split('T')[0].split('-');
@@ -1367,6 +1378,7 @@
                 if (eyeIcon) eyeIcon.className = 'fa-regular fa-eye';
             }
 
+            // Generate tombol ganti foto yang hanya relevan dengan jabatannya
             const allDocs = [
                 { key: 'BIB', label: 'Mine Permit BIB', rel: true },
                 { key: 'TIA', label: 'Mine Permit TIA', rel: isDocRelevant(data.Jabatan, 'MP_TIA') },
@@ -1380,14 +1392,13 @@
             const docList = allDocs.filter(d => d.rel);
             const btnContainer = document.getElementById('mpDocPhotoButtons');
             btnContainer.innerHTML = '';
-            const safeRow = JSON.stringify(data).replace(/'/g, "\\'");
 
             docList.forEach(d => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'p-2 text-left bg-white border border-slate-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all flex items-center justify-between text-[11px] font-medium text-slate-700 cursor-pointer shadow-sm active:scale-98';
                 btn.innerHTML = `<span class="truncate">${d.label}</span> <i class="fa-solid fa-camera text-blue-500 text-[11px]"></i>`;
-                btn.onclick = () => openPhotoModal(safeRow, d.key, d.label);
+                btn.onclick = () => openPhotoModalById(data.ID, d.key, d.label);
                 btnContainer.appendChild(btn);
             });
 
@@ -1409,7 +1420,6 @@
                 updatedData.Password = newPassword;
             }
 
-            // Update memori dan cache
             const targetList = [...karyawanData];
             const idx = targetList.findIndex(k => String(k.ID) === String(updatedData.ID));
             if (idx > -1) targetList[idx] = updatedData;
@@ -1428,7 +1438,6 @@
                 showConfirmButton: false 
             });
 
-            // Background sync ke backend
             try {
                 await fetchWithTimeout(API_URL, {
                     method: 'POST',
@@ -1439,20 +1448,24 @@
             } catch (err) {}
         }
 
-        function openPhotoModal(rowObjStr, docKey, docTitle) {
-            let row;
-            try {
-                row = typeof rowObjStr === 'string' ? JSON.parse(rowObjStr) : rowObjStr;
-            } catch(e) { row = currentUser ? currentUser.data : {}; }
+        function openPhotoModalById(rowId, docKey, docTitle) {
+            let row = karyawanData.find(k => String(k.ID) === String(rowId));
+            if (!row && currentUser && currentUser.data && String(currentUser.data.ID) === String(rowId)) {
+                row = currentUser.data;
+            }
+            if (!row && currentUser && currentUser.data) {
+                row = currentUser.data;
+            }
 
-            activePhotoDoc = { rowObj: row, docKey: docKey, docTitle: docTitle };
+            activePhotoDoc = { rowId: rowId, rowObj: row, docKey: docKey, docTitle: docTitle };
 
-            document.getElementById('photoModalTitle').innerText = `Foto: ${docTitle} (${row.Nama || '-'})`;
+            const namaText = row ? (row.Nama || '-') : '-';
+            document.getElementById('photoModalTitle').innerText = `Foto: ${docTitle} (${namaText})`;
             const imgEl = document.getElementById('photoModalImg');
             const placeholderEl = document.getElementById('photoModalPlaceholder');
 
             const photoField = `Foto_${docKey}`;
-            const photoSrc = row[photoField] || (row.Photos && row.Photos[docKey]) || null;
+            const photoSrc = row ? (row[photoField] || (row.Photos && row.Photos[docKey]) || null) : null;
 
             if (photoSrc) {
                 imgEl.src = photoSrc;
@@ -1479,7 +1492,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Kompresi gambar client-side (maks width 500px, quality 0.55 agar muat di batas sel Google Sheets 50.000 karakter)
+            // Kompresi client-side (lebar maksimal 500px kualitas 0.55 untuk batas sel sheet)
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
@@ -1512,7 +1525,6 @@
             const photoField = `Foto_${docKey}`;
             const updatedRow = { ...rowObj, [photoField]: base64Data };
 
-            // Update state & cache
             const targetList = [...karyawanData];
             const idx = targetList.findIndex(k => String(k.ID) === String(rowObj.ID) || String(k.NRP) === String(rowObj.NRP));
             if (idx > -1) targetList[idx] = updatedRow;
@@ -1524,14 +1536,12 @@
                 renderManpowerPortal(updatedRow);
             }
 
-            // Tampilkan langsung di modal foto
             document.getElementById('photoModalImg').src = base64Data;
             document.getElementById('photoModalImg').classList.remove('hidden');
             document.getElementById('photoModalPlaceholder').classList.add('hidden');
 
             Swal.fire({ icon: 'success', title: 'Foto Diperbarui!', text: `Foto ${docTitle} berhasil disimpan.`, timer: 1500, showConfirmButton: false });
 
-            // Background sync
             try {
                 await fetchWithTimeout(API_URL, {
                     method: 'POST',
@@ -1590,7 +1600,7 @@
                     </td>
                     <td class="px-4 py-3 text-center align-middle">
                         <div class="flex items-center justify-center gap-1.5">
-                            <button onclick='editPasswordModal(${JSON.stringify(row).replace(/'/g, "\\'")})' class="px-2.5 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-600 hover:text-white transition-colors text-[10px] font-semibold cursor-pointer">
+                            <button onclick="editPasswordModalById('${row.ID}')" class="px-2.5 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-600 hover:text-white transition-colors text-[10px] font-semibold cursor-pointer">
                                 <i class="fa-solid fa-key mr-1"></i> Ubah Password
                             </button>
                             <button onclick="resetPasswordToNRP('${row.ID}', '${row.NRP}', '${row.Nama}')" class="px-2 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded hover:bg-slate-300 transition-colors text-[10px] cursor-pointer" title="Reset ke NRP">
@@ -1635,7 +1645,10 @@
             } catch(e) {}
         }
 
-        function editPasswordModal(row) {
+        function editPasswordModalById(rowId) {
+            const row = karyawanData.find(k => String(k.ID) === String(rowId));
+            if (!row) return;
+
             Swal.fire({
                 title: `Ubah Password (${row.Nama})`,
                 html: `
@@ -1869,19 +1882,17 @@
             let targetList = [...karyawanData];
             let isEdit = false;
 
-            // Pencarian ID atau NRP untuk mencegah duplikasi
             const index = targetList.findIndex(k => 
                 (dataObj.ID && String(k.ID) === String(dataObj.ID)) ||
                 (dataObj.NRP && String(k.NRP).trim().toUpperCase() === String(dataObj.NRP).trim().toUpperCase())
             );
 
             if (index > -1) {
-                // Pertahankan ID lama, password, status akun, dan foto yang sudah tersimpan
                 targetList[index] = { ...targetList[index], ...dataObj };
                 isEdit = true;
             } else {
                 if (!dataObj.ID) dataObj.ID = "id_" + Date.now() + "_" + Math.floor(Math.random()*1000);
-                if (!dataObj.Password) dataObj.Password = dataObj.NRP; // Default password = NRP
+                if (!dataObj.Password) dataObj.Password = dataObj.NRP;
                 if (!dataObj.StatusAkun) dataObj.StatusAkun = 'Aktif';
                 targetList.unshift(dataObj);
             }
@@ -1908,7 +1919,6 @@
             } catch (err) {}
         }
 
-        // Hapus akun & data karyawan (otomatis tersinkronisasi)
         function confirmDelete(id, nama) {
             Swal.fire({ 
                 title: 'Hapus Karyawan & Akun?', 
@@ -1987,15 +1997,23 @@
         function executeSort() {
             const col = currentSort.col;
             if(!col) return;
+
             const getDaysLeft = (docName, exp) => { 
                 const doc = evaluateDocument(docName, exp); 
-                return doc ? doc.daysLeft : Infinity; 
+                return doc ? doc.daysLeft : 999999; 
             };
 
             filteredData.sort((a, b) => {
                 let valA, valB;
                 if (col === 'nrp') { valA = String(a.Nama || '').toLowerCase(); valB = String(b.Nama || '').toLowerCase(); }
                 else if (col === 'perusahaan') { valA = String(a.Perusahaan || '').toLowerCase(); valB = String(b.Perusahaan || '').toLowerCase(); }
+                else if (col === 'mp_bib') { valA = getDaysLeft('MP BIB', a.ExpSIMPER_BIB); valB = getDaysLeft('MP BIB', b.ExpSIMPER_BIB); }
+                else if (col === 'mp_tia') { valA = getDaysLeft('MP TIA', a.ExpSIMPER_TIA); valB = getDaysLeft('MP TIA', b.ExpSIMPER_TIA); }
+                else if (col === 'sim_b2') { valA = getDaysLeft('SIM B2', a.ExpSIM_B2); valB = getDaysLeft('SIM B2', b.ExpSIM_B2); }
+                else if (col === 'mcu') { valA = getDaysLeft('MCU', a.ExpMCU); valB = getDaysLeft('MCU', b.ExpMCU); }
+                else if (col === 'dtag') { valA = getDaysLeft('Danger Tag', a.ExpDangerTag); valB = getDaysLeft('Danger Tag', b.ExpDangerTag); }
+                else if (col === 'ket') { valA = getDaysLeft('Ketinggian', a.ExpKetinggian); valB = getDaysLeft('Ketinggian', b.ExpKetinggian); }
+                else if (col === 'sio') { valA = getDaysLeft('SIO', a.ExpSIO); valB = getDaysLeft('SIO', b.ExpSIO); }
                 
                 if (valA < valB) return currentSort.asc ? -1 : 1;
                 if (valA > valB) return currentSort.asc ? 1 : -1;
@@ -2030,8 +2048,8 @@
                 tr.innerHTML = `
                     <td class="px-2 py-3 text-center border border-slate-200 align-top w-20">
                         <div class="flex items-center justify-center gap-1.5">
-                            <button onclick='viewData(${JSON.stringify(row).replace(/'/g, "\\'")})' class="w-7 h-7 flex items-center justify-center text-xs bg-emerald-50 text-emerald-600 rounded border border-emerald-200 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer" title="Buka Kartu"><i class="fa-solid fa-id-badge"></i></button>
-                            <button onclick='editData(${JSON.stringify(row).replace(/'/g, "\\'")})' class="w-7 h-7 flex items-center justify-center text-xs bg-blue-50 text-blue-600 rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer" title="Edit Data"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="viewDataById('${row.ID}')" class="w-7 h-7 flex items-center justify-center text-xs bg-emerald-50 text-emerald-600 rounded border border-emerald-200 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer" title="Buka Kartu"><i class="fa-solid fa-id-badge"></i></button>
+                            <button onclick="editDataById('${row.ID}')" class="w-7 h-7 flex items-center justify-center text-xs bg-blue-50 text-blue-600 rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer" title="Edit Data"><i class="fa-solid fa-pen-to-square"></i></button>
                         </div>
                     </td>
                     <td class="px-4 py-3 border border-slate-200 align-top"><div class="font-bold text-slate-900 text-sm">${row.Nama || '-'}</div><div class="text-xs text-slate-500 font-mono">${row.NRP || '-'}</div></td>
@@ -2051,8 +2069,14 @@
             });
         }
 
-        function editData(rowObj) { 
-            openModal(rowObj); 
+        function editDataById(id) { 
+            const row = karyawanData.find(k => String(k.ID) === String(id));
+            if (row) openModal(row); 
+        }
+
+        function viewDataById(id) {
+            const row = karyawanData.find(k => String(k.ID) === String(id));
+            if (row) populateDetailModal(row);
         }
 
         function populateDetailModal(rowObj) {
@@ -2081,14 +2105,13 @@
                     sisaText = `(SISA ${status.daysLeft} HR)`;
                 }
 
-                const safeRow = JSON.stringify(rowObj).replace(/'/g, "\\'");
                 return `
                     <div class="text-right flex items-center gap-2 justify-end">
                         <div>
                             <div class="font-bold text-slate-800 text-xs">${status.date}</div>
                             <div class="text-[9px] uppercase tracking-wider font-bold ${colorClass}">${statusLabel} ${sisaText}</div>
                         </div>
-                        <button onclick="openPhotoModal('${safeRow}', '${docKey}', '${docName}')" class="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors border border-blue-200 cursor-pointer" title="Lihat / Ganti Foto">
+                        <button onclick="openPhotoModalById('${rowObj.ID}', '${docKey}', '${docName}')" class="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors border border-blue-200 cursor-pointer" title="Lihat / Ganti Foto">
                             <i class="fa-solid fa-eye text-[10px]"></i>
                         </button>
                     </div>`;
@@ -2130,10 +2153,6 @@
             document.getElementById('section_K3').style.display = showK3 ? 'block' : 'none';
 
             document.getElementById('detailModal').classList.add('detail-modal-active');
-        }
-
-        function viewData(rowObj) {
-            populateDetailModal(rowObj);
         }
 
         function closeDetailModal() {
@@ -2230,7 +2249,7 @@
                             </td>
                             <td class="py-2 px-1 text-right w-3/12 align-middle">${statusBadge}</td>
                             <td class="py-2 pl-1 pr-2 text-center w-3/12 align-middle">
-                                <button onclick='viewData(${JSON.stringify(row).replace(/'/g, "\\'")})' class="px-2.5 py-1 bg-blue-50 text-blue-600 rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors text-[10px] font-medium cursor-pointer">Cek</button>
+                                <button onclick="viewDataById('${row.ID}')" class="px-2.5 py-1 bg-blue-50 text-blue-600 rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors text-[10px] font-medium cursor-pointer">Cek</button>
                             </td>`;
                         tbody.appendChild(tr);
                     });
@@ -2272,13 +2291,13 @@
             } else if (menu === 'datamaster') { 
                 document.getElementById('datamaster-view').classList.remove('hidden'); 
                 document.getElementById('nav-datamaster').className = activeClass; 
+            } else if (menu === 'dataunit') { 
+                document.getElementById('dataunit-view').classList.remove('hidden'); 
+                document.getElementById('nav-dataunit').className = activeClass; 
             } else if (menu === 'account') { 
                 document.getElementById('account-view').classList.remove('hidden'); 
                 document.getElementById('nav-account').className = activeClass; 
                 filterAccountTable();
-            } else if (menu === 'dataunit') { 
-                document.getElementById('dataunit-view').classList.remove('hidden'); 
-                document.getElementById('nav-dataunit').className = activeClass; 
             }
 
             if (window.innerWidth < 768) { 
@@ -2365,7 +2384,7 @@
                 const tr = document.createElement('tr'); 
                 tr.className = 'hover:bg-slate-50 transition-colors';
                 tr.innerHTML = `
-                    <td class="px-2 py-3 text-center border border-slate-200 w-16"><button onclick='editUnit(${JSON.stringify(row).replace(/'/g, "\\'")})' class="w-7 h-7 flex items-center justify-center text-xs bg-blue-50 text-blue-600 rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                    <td class="px-2 py-3 text-center border border-slate-200 w-16"><button onclick="editUnitById('${row.ID}')" class="w-7 h-7 flex items-center justify-center text-xs bg-blue-50 text-blue-600 rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"><i class="fa-solid fa-pen-to-square"></i></button></td>
                     <td class="px-4 py-3 font-bold text-slate-800 border border-slate-200">${row.NoUnit || '-'}</td>
                     <td class="px-4 py-3 text-sm text-slate-600 border border-slate-200">${row.Model || '-'}</td>
                     <td class="px-4 py-3 border border-slate-200 text-center">${buildCellHtml([evaluateDocument('BIB', row.ExpKom_BIB)], row, 'KOM_BIB')}</td>
@@ -2374,6 +2393,11 @@
                     <td class="px-4 py-3 text-center border border-slate-200 w-24"><button onclick="confirmDeleteUnit('${row.ID}', '${row.NoUnit}')" class="w-7 h-7 flex items-center justify-center text-xs bg-rose-50 text-rose-600 rounded border border-rose-200 hover:bg-rose-600 hover:text-white transition-colors cursor-pointer"><i class="fa-solid fa-trash"></i></button></td>`;
                 tbody.appendChild(tr);
             });
+        }
+
+        function editUnitById(id) {
+            const row = unitData.find(u => String(u.ID) === String(id));
+            if (row) openUnitModal(row);
         }
 
         function openUnitModal(data = null) {
@@ -2395,10 +2419,6 @@
 
         function closeUnitModal() { 
             document.getElementById('unitFormModal').classList.remove('modal-active'); 
-        }
-
-        function editUnit(rowObj) { 
-            openUnitModal(rowObj); 
         }
 
         async function handleUnitFormSubmit(e) {
