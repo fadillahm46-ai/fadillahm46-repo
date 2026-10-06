@@ -3,11 +3,14 @@
 // =========================================================================
 
 /**
- * Konfigurasi Spreadsheet ID (Opsional):
- * Jika script dibuat dari menu: Ekstensi > Apps Script di Spreadsheet, biarkan KOSONG ("").
- * Jika script dibuat terpisah di script.google.com, isi dengan ID spreadsheet Anda.
+ * Konfigurasi Spreadsheet ID (Opsional jika script terikat ke spreadsheet langsung)
  */
 var SPREADSHEET_ID = "";
+
+/**
+ * FOLDER GOOGLE DRIVE PENYIMPANAN FOTO DOKUMEN & SERTIFIKAT
+ */
+var DRIVE_FOLDER_ID = "1pA4e24uLetVNBhj0GmrlV0sS-PvPREC9";
 
 /**
  * Helper mendapatkan spreadsheet aktif secara aman
@@ -52,7 +55,6 @@ function getSheetKaryawan(ss) {
     }
   }
 
-  // Jika tidak ditemukan lembar berlabel NRP, gunakan lembar pertama
   sheets[0].setName('Data Karyawan');
   return sheets[0];
 }
@@ -77,7 +79,6 @@ var ALL_UNIT_HEADERS = [
 
 /**
  * FUNGSI UTAMA: SETUP DATABASE LENGKAP SATU KALI KLIK
- * Pilih fungsi ini di menu dropdown atas Apps Script, lalu klik 'Jalankan'.
  */
 function setupDatabaseLengkap() {
   var ss = getSpreadsheet();
@@ -86,14 +87,12 @@ function setupDatabaseLengkap() {
     return;
   }
 
-  // 1. SETUP SHEET DATA KARYAWAN
   var sheetKaryawan = getSheetKaryawan(ss);
   var maxCols = Math.max(sheetKaryawan.getMaxColumns(), 1);
   var r1 = sheetKaryawan.getRange(1, 1, 1, maxCols).getDisplayValues()[0];
   var hasNRP = r1.some(function(h) { return String(h).trim().toUpperCase() === "NRP"; });
   var hasData = sheetKaryawan.getLastRow() > 1;
 
-  // Jika baris ke-2 masih kosong atau tidak memiliki kolom NRP sama sekali (seperti di tangkapan layar)
   if (!hasNRP && !hasData) {
     sheetKaryawan.clear();
     if (sheetKaryawan.getMaxColumns() < ALL_KARYAWAN_HEADERS.length) {
@@ -106,11 +105,9 @@ function setupDatabaseLengkap() {
       .setHorizontalAlignment("center");
     sheetKaryawan.setFrozenRows(1);
   } else {
-    // Jika sudah ada data karyawan lama, tambahkan hanya kolom yang belum ada di paling kanan
     ensureHeadersExist(sheetKaryawan, ALL_KARYAWAN_HEADERS);
   }
 
-  // 2. SETUP SHEET DATA UNIT
   var sheetUnit = ss.getSheetByName('Data Unit');
   if (!sheetUnit) {
     sheetUnit = ss.insertSheet('Data Unit');
@@ -124,27 +121,26 @@ function setupDatabaseLengkap() {
     ensureHeadersExist(sheetUnit, ALL_UNIT_HEADERS);
   }
 
+  // Cek akses folder Drive
+  try {
+    var testFolder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    Logger.log("Folder Drive Terhubung: " + testFolder.getName());
+  } catch(errF) {
+    Logger.log("Peringatan Folder Drive: " + errF.toString());
+  }
+
   SpreadsheetApp.flush();
-  Logger.log("Berhasil! Seluruh kolom Data Karyawan (27 Kolom) dan Data Unit (6 Kolom) telah tersusun rapi.");
+  Logger.log("Database siap & seluruh kolom tersusun rapi.");
 }
 
-/**
- * Alias agar kompatibel jika memilih fungsi tambahSemuaKolomBaru
- */
 function tambahSemuaKolomBaru() {
   setupDatabaseLengkap();
 }
 
-/**
- * Alias agar kompatibel jika memilih fungsi setupSheets
- */
 function setupSheets() {
   setupDatabaseLengkap();
 }
 
-/**
- * Memastikan kolom baru otomatis terpasang tanpa error batas kolom
- */
 function ensureHeadersExist(sheet, headersList) {
   if (!sheet) return;
   var maxCols = Math.max(sheet.getMaxColumns(), 1);
@@ -206,7 +202,10 @@ function doPost(e) {
 
     setupDatabaseLengkap();
 
-    if (action === 'saveKaryawan') {
+    if (action === 'uploadDocPhoto') {
+      return responseJSON(handlePhotoUploadToDrive(payload));
+    }
+    else if (action === 'saveKaryawan') {
       return responseJSON(saveData('Data Karyawan', payload.data, 'NRP'));
     } 
     else if (action === 'deleteKaryawan') {
@@ -226,6 +225,91 @@ function doPost(e) {
 
   } catch (err) {
     return responseJSON({ error: err.toString() });
+  }
+}
+
+/**
+ * UPLOAD FOTO LANGSUNG KE GOOGLE DRIVE & SIMPAN TAUTAN KE SHEET
+ */
+function handlePhotoUploadToDrive(payload) {
+  try {
+    var ss = getSpreadsheet();
+    if (!ss) return { success: false, error: 'Spreadsheet tidak ditemukan.' };
+    var sheet = getSheetKaryawan(ss);
+    if (!sheet) return { success: false, error: 'Sheet Data Karyawan tidak ditemukan.' };
+
+    var rowId = payload.id;
+    var nrp = payload.nrp;
+    var docKey = payload.docKey;
+    var base64 = payload.base64;
+    var colHeader = "Foto_" + docKey;
+
+    if (!base64) {
+      return { success: false, error: 'Data foto tidak diterima.' };
+    }
+
+    var folder;
+    try {
+      folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    } catch(errFolder) {
+      return { success: false, error: 'Gagal membuka folder Google Drive. Pastikan ID folder benar: ' + errFolder.toString() };
+    }
+
+    var cleanBase64 = base64;
+    var mimeType = "image/jpeg";
+    if (cleanBase64.indexOf(";base64,") > -1) {
+      var parts = cleanBase64.split(";base64,");
+      mimeType = parts[0].replace("data:", "").trim();
+      cleanBase64 = parts[1];
+    } else if (cleanBase64.indexOf("base64,") > -1) {
+      cleanBase64 = cleanBase64.split("base64,")[1];
+    }
+
+    var fileName = (nrp ? nrp : "MP") + "_" + docKey + "_" + Utilities.formatDate(new Date(), "GMT+8", "yyyyMMdd_HHmmss") + ".jpg";
+    var decoded = Utilities.base64Decode(cleanBase64);
+    var blob = Utilities.newBlob(decoded, mimeType, fileName);
+    var file = folder.createFile(blob);
+    
+    // Set hak akses agar gambar dapat tampil langsung
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch(errShare) {}
+
+    var fileId = file.getId();
+    var driveUrl = "https://lh3.googleusercontent.com/d/" + fileId;
+
+    ensureHeadersExist(sheet, [colHeader]);
+
+    var data = sheet.getDataRange().getValues();
+    var displayData = sheet.getDataRange().getDisplayValues();
+    var headers = data[0];
+    var colIndex = headers.indexOf(colHeader);
+    var idIndex = headers.indexOf('ID');
+    var nrpIndex = headers.indexOf('NRP');
+
+    if (colIndex === -1) {
+      return { success: false, error: 'Kolom ' + colHeader + ' tidak ditemukan di sheet.' };
+    }
+
+    var targetRow = -1;
+    for (var i = 1; i < data.length; i++) {
+      var rId = String(data[i][idIndex] || '');
+      var rNrp = String(displayData[i][nrpIndex] || '').trim();
+      if ((rowId && rId === String(rowId)) || (nrp && rNrp.toUpperCase() === String(nrp).trim().toUpperCase())) {
+        targetRow = i + 1;
+        break;
+      }
+    }
+
+    if (targetRow > -1) {
+      sheet.getRange(targetRow, colIndex + 1).setValue(driveUrl);
+      SpreadsheetApp.flush();
+      return { success: true, url: driveUrl, docKey: docKey, id: rowId, nrp: nrp, fileId: fileId };
+    } else {
+      return { success: true, url: driveUrl, docKey: docKey, warning: 'Foto tersimpan di Drive, baris sheet belum diperbarui.' };
+    }
+  } catch(e) {
+    return { success: false, error: e.toString() };
   }
 }
 
@@ -256,13 +340,11 @@ function getData(sheetName) {
     for (var j = 0; j < headers.length; j++) {
       var val = data[i][j];
       
-      // Standarisasi tanggal ISO
       if (Object.prototype.toString.call(val) === '[object Date]') {
         var ms = val.getTime() - (val.getTimezoneOffset() * 60000);
         val = new Date(ms).toISOString().split('T')[0];
       }
       
-      // Standarisasi NoHP jika ada awalan tanda kutip
       if (headers[j] === 'NoHP' && typeof val === 'string') {
         val = val.replace(/^'/, '');
       }
@@ -275,13 +357,12 @@ function getData(sheetName) {
   return result.reverse();
 }
 
-// MENYIMPAN / EDIT DATA DENGAN PROTEKSI DUPLIKAT DAN BATAS KARAKTER SEL
+// MENYIMPAN / EDIT DATA DENGAN INTERSEPSI FOTO KE DRIVE OTOMATIS
 function saveData(sheetName, dataObj, primaryKey) {
   var ss = getSpreadsheet();
   if (!ss) return { success: false, error: 'Spreadsheet tidak ditemukan' };
   var sheet = (sheetName === 'Data Karyawan') ? getSheetKaryawan(ss) : (ss.getSheetByName(sheetName) || ss.getSheets()[0]);
   
-  // Pastikan seluruh kolom yang dikirim ada di sheet
   var incomingKeys = [];
   for (var k in dataObj) {
     if (k) incomingKeys.push(k);
@@ -310,13 +391,11 @@ function saveData(sheetName, dataObj, primaryKey) {
     var rowPk = String(displayData[i][pkIndex] || '').trim();
     var targetPk = String(dataObj[primaryKey] || '').trim();
 
-    // Prioritas pencocokan berdasarkan ID atau Primary Key (NRP / NoUnit)
     if ((dataObj.ID && rowId === String(dataObj.ID)) || 
         (targetPk && rowPk.toUpperCase() === targetPk.toUpperCase())) {
       rowIndex = i + 1;
       if (rowId) dataObj.ID = rowId;
       
-      // Pertahankan nilai kolom yang tidak ikut dikirim pada request ini
       for (var h = 0; h < headers.length; h++) {
         var key = headers[h];
         if (dataObj[key] === undefined && data[i][h] !== undefined) {
@@ -329,14 +408,30 @@ function saveData(sheetName, dataObj, primaryKey) {
 
   var rowData = [];
   for (var h = 0; h < headers.length; h++) {
-    var val = dataObj[headers[h]];
+    var key = headers[h];
+    var val = dataObj[key];
+
     if (val === undefined || val === null) {
       val = "";
+    } else if (typeof val === 'string' && val.indexOf('data:image/') === 0) {
+      // Jika data base64 terkirim, otomatis upload ke Drive dan ganti dengan URL
+      try {
+        var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+        var cleanB64 = val.split(";base64,")[1] || val.split("base64,")[1] || val;
+        var mime = val.substring(5, val.indexOf(";")) || "image/jpeg";
+        var decoded = Utilities.base64Decode(cleanB64);
+        var blob = Utilities.newBlob(decoded, mime, (dataObj.NRP || "MP") + "_" + key + "_" + Date.now() + ".jpg");
+        var file = folder.createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        val = "https://lh3.googleusercontent.com/d/" + file.getId();
+        dataObj[key] = val;
+      } catch(errB64) {
+        val = "";
+      }
     } else if (typeof val === 'string' && val.length > 49000) {
-      val = val.substring(0, 49000); // Proteksi batas karakter Google Sheets
+      val = val.substring(0, 49000);
     }
     
-    // Simpan NoHP sebagai teks agar angka '0' depan tidak hilang
     if (headers[h] === 'NoHP' && val !== "") {
       val = "'" + String(val).replace(/^'/, '');
     }
