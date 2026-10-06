@@ -1,6 +1,6 @@
 // =========================================================================
 // BACKEND GOOGLE APPS SCRIPT - SE MONITORING & GOOGLE DRIVE INTEGRATION
-// Versi: 2.5 (Didukung Pelindung Crash & Uji Manual)
+// Versi: 2.6 (Didukung Auto-Expand Kolom, Pelindung Crash & Uji Diagnostik)
 // =========================================================================
 
 var DRIVE_FOLDER_ID = "1pA4e24uLetVNBhj0GmrlV0sS-PvPREC9";
@@ -62,7 +62,7 @@ function dapatkanFolderDrive() {
     Logger.log("Peringatan ID Folder Drive: " + errId.toString());
   }
 
-  // Jika folder ID khusus tidak dapat dibuka, buat/gunakan folder cadangan otomatis
+  // Jika folder ID khusus tidak dapat dibuka / permission error, buat folder cadangan otomatis
   if (!folder) {
     var namaFolder = "SE_Monitoring_Photos";
     var folders = DriveApp.getFoldersByName(namaFolder);
@@ -78,15 +78,6 @@ function dapatkanFolderDrive() {
   }
   
   return folder;
-}
-
-function ujiIzinDriveDanFolder() {
-  var folder = dapatkanFolderDrive();
-  Logger.log("BERHASIL! Folder aktif: " + folder.getName() + " (ID: " + folder.getId() + ")");
-  var ss = getSpreadsheet();
-  if (ss) {
-    ss.toast("Koneksi Google Drive Berhasil Terhubung ke folder: " + folder.getName(), "Sukses", 5);
-  }
 }
 
 function doGet(e) {
@@ -106,7 +97,6 @@ function doPost(e) {
     var payload = JSON.parse(contents);
     var action = payload.action;
 
-    // Mendukung 'uploadPhoto' maupun 'uploadDocPhoto'
     if (action === 'uploadPhoto' || action === 'uploadDocPhoto') {
       return responseJSON(handlePhotoUploadToDrive(payload));
     }
@@ -136,7 +126,6 @@ function doPost(e) {
 }
 
 function handlePhotoUploadToDrive(payload) {
-  // Pengaman jika fungsi dipanggil tanpa parameter
   if (!payload || typeof payload !== "object") {
     return { success: false, status: "error", message: "Data payload foto tidak diterima." };
   }
@@ -178,7 +167,13 @@ function handlePhotoUploadToDrive(payload) {
 
     var colIndex = headers.indexOf(targetColHeader);
     if (colIndex === -1) {
-      sheet.getRange(1, headers.length + 1).setValue(targetColHeader);
+      var maxCols = sheet.getMaxColumns();
+      var neededCol = headers.length + 1;
+      // Perlebar sheet jika kolom sheet fisik kurang dari kebutuhan
+      if (maxCols < neededCol) {
+        sheet.insertColumnsAfter(maxCols, neededCol - maxCols + 2);
+      }
+      sheet.getRange(1, neededCol).setValue(targetColHeader);
       colIndex = headers.length;
       headers.push(targetColHeader);
     }
@@ -197,6 +192,10 @@ function handlePhotoUploadToDrive(payload) {
     }
 
     if (rowIndex > -1) {
+      // Pastikan kolom sel yang dituju berada dalam batas grid sheet
+      if (sheet.getMaxColumns() < colIndex + 1) {
+        sheet.insertColumnsAfter(sheet.getMaxColumns(), (colIndex + 1) - sheet.getMaxColumns() + 1);
+      }
       sheet.getRange(rowIndex, colIndex + 1).setValue(directUrl);
       SpreadsheetApp.flush();
     }
@@ -259,14 +258,8 @@ function getKaryawanData() {
 }
 
 function saveKaryawanData(item) {
-  // PENGAMAN CRASH: Jika fungsi tidak sengaja dijalankan dari tombol Play/Run Apps Script tanpa data
   if (!item || typeof item !== "object") {
-    Logger.log("Pemberitahuan: saveKaryawanData membutuhkan data item dari web. Jika ingin menguji manual, jalankan fungsi 'ujiSimpanKaryawan()'.");
-    return { 
-      success: false, 
-      status: "error", 
-      message: "Data karyawan kosong. Untuk tes dari editor Apps Script, silakan pilih fungsi 'ujiSimpanKaryawan()'." 
-    };
+    return { success: false, status: "error", message: "Data karyawan kosong." };
   }
 
   var ss = getSpreadsheet();
@@ -276,6 +269,9 @@ function saveKaryawanData(item) {
 
   for (var key in item) {
     if (headers.indexOf(key) === -1) {
+      if (sheet.getMaxColumns() < headers.length + 1) {
+        sheet.insertColumnsAfter(sheet.getMaxColumns(), 2);
+      }
       headers.push(key);
       sheet.getRange(1, headers.length).setValue(key);
     }
@@ -321,9 +317,7 @@ function saveKaryawanData(item) {
 }
 
 function deleteKaryawanData(id) {
-  if (!id) {
-    return { success: false, status: 'error', message: 'ID karyawan tidak diberikan.' };
-  }
+  if (!id) return { success: false, status: 'error', message: 'ID tidak ada.' };
   var ss = getSpreadsheet();
   var sheet = getSheetKaryawan(ss);
   var data = sheet.getDataRange().getValues();
@@ -333,7 +327,7 @@ function deleteKaryawanData(id) {
       return { success: true, status: 'success' };
     }
   }
-  return { success: false, status: 'not_found', message: 'Data tidak ditemukan' };
+  return { success: false, status: 'not_found' };
 }
 
 function getUnitData() {
@@ -361,12 +355,7 @@ function getUnitData() {
 }
 
 function saveUnitData(item) {
-  // PENGAMAN CRASH: Jika fungsi tidak sengaja dijalankan dari tombol Play/Run Apps Script tanpa data
-  if (!item || typeof item !== "object") {
-    Logger.log("Pemberitahuan: saveUnitData membutuhkan data unit dari web.");
-    return { success: false, status: "error", message: "Data unit kosong." };
-  }
-
+  if (!item || typeof item !== "object") return { success: false, status: "error" };
   var ss = getSpreadsheet();
   var sheet = getSheetUnit(ss);
   var data = sheet.getDataRange().getValues();
@@ -395,9 +384,7 @@ function saveUnitData(item) {
 }
 
 function deleteUnitData(id) {
-  if (!id) {
-    return { success: false, status: 'error', message: 'ID unit tidak diberikan.' };
-  }
+  if (!id) return { success: false, status: 'error' };
   var ss = getSpreadsheet();
   var sheet = getSheetUnit(ss);
   var data = sheet.getDataRange().getValues();
@@ -407,7 +394,7 @@ function deleteUnitData(id) {
       return { success: true, status: 'success' };
     }
   }
-  return { success: false, status: 'not_found', message: 'Data unit tidak ditemukan' };
+  return { success: false, status: 'not_found' };
 }
 
 function importBulkData(items) {
@@ -426,6 +413,11 @@ function responseJSON(data) {
 function setupDatabaseLengkap() {
   var ss = getSpreadsheet();
   var sKaryawan = getSheetKaryawan(ss);
+  
+  if (sKaryawan.getMaxColumns() < ALL_KARYAWAN_HEADERS.length) {
+    sKaryawan.insertColumnsAfter(sKaryawan.getMaxColumns(), ALL_KARYAWAN_HEADERS.length - sKaryawan.getMaxColumns());
+  }
+
   if (sKaryawan.getLastRow() === 0) {
     sKaryawan.getRange(1, 1, 1, ALL_KARYAWAN_HEADERS.length).setValues([ALL_KARYAWAN_HEADERS]);
   } else {
@@ -445,22 +437,35 @@ function setupDatabaseLengkap() {
   ujiIzinDriveDanFolder();
 }
 
-// ALIAS AGAR SEMUA NAMA FUNGSI SETUP BEKERJA
 function tambahSemuaKolomBaru() {
   setupDatabaseLengkap();
 }
 
-// FUNGSI UNTUK TES MANUAL DARI TOMBOL PLAY/RUN APPS SCRIPT
-function ujiSimpanKaryawan() {
-  var dataUji = {
-    NRP: "12345678",
-    Nama: "PENGUJIAN SISTEM",
-    Perusahaan: "PT PPA",
-    Jabatan: "ADMINISTRASI",
-    TglLahir: "1995-05-15",
-    NoHP: "081234567890",
-    StatusAkun: "Aktif"
+// UJI DIAGNOSTIK KONEKSI GOOGLE DRIVE (JALANKAN INI DARI TOMBOL RUN APPS SCRIPT)
+function ujiUploadFotoDrive() {
+  var folder = dapatkanFolderDrive();
+  Logger.log("Folder tujuan aktif: " + folder.getName() + " (ID: " + folder.getId() + ")");
+  
+  // Tes buat file dummy 1 pixel
+  var dummyBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+  var testPayload = {
+    action: "uploadPhoto",
+    docKey: "BIB",
+    nrp: "TES_SISTEM",
+    id: "test_id",
+    base64: dummyBase64
   };
-  var hasil = saveKaryawanData(dataUji);
-  Logger.log("Hasil Uji Simpan Karyawan: " + JSON.stringify(hasil));
+  
+  var hasil = handlePhotoUploadToDrive(testPayload);
+  Logger.log("HASIL UJI UPLOAD DRIVE: " + JSON.stringify(hasil));
+  
+  var ss = getSpreadsheet();
+  if (ss && hasil.success) {
+    ss.toast("UJI UPLOAD SUKSES! File tersimpan: " + hasil.url, "BERHASIL", 6);
+  }
+}
+
+function ujiIzinDriveDanFolder() {
+  var folder = dapatkanFolderDrive();
+  Logger.log("Folder aktif: " + folder.getName() + " (ID: " + folder.getId() + ")");
 }
